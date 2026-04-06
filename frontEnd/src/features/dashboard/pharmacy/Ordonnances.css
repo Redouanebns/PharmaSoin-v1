@@ -1,0 +1,196 @@
+.ordonnances-container {
+  padding: 2rem;
+  background-color: #f1f2f6;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+.ordonnances-container.dark {
+  background-color: #1a1a1a;
+  color: white;
+}
+
+.ordonnances-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.dark .ordonnances-card {
+  background: #2d2d2d;
+}
+
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  color: #2d3436;
+}
+
+.dark .header-title {
+  color: #f1f2f6;
+}
+
+.header-title h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.add-btn {
+  background-color: #009688;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.add-btn:hover {
+  background-color: #00796b;
+}
+
+.filters-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #b2bec3;
+}
+
+.search-wrapper input {
+  width: 100%;
+  padding: 10px 10px 10px 40px;
+  border-radius: 8px;
+  border: 1px solid #dfe6e9;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.dark .search-wrapper input {
+  background: #3d3d3d;
+  border-color: #4d4d4d;
+  color: white;
+}
+
+.search-wrapper input:focus {
+  border-color: #009688;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 150, 136, 0.1);
+}
+
+.filter-select {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #dfe6e9;
+  font-size: 0.9rem;
+  color: #2d3436;
+  background: white;
+}
+
+.dark .filter-select {
+  background: #3d3d3d;
+  border-color: #4d4d4d;
+  color: white;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.ordonnances-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ordonnances-table th {
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2d3436;
+  border-bottom: 2px solid #f1f2f6;
+}
+
+.dark .ordonnances-table th {
+  color: #b2bec3;
+  border-bottom-color: #3d3d3d;
+}
+
+.ordonnances-table td {
+  padding: 1rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f1f2f6;
+}
+
+.dark .ordonnances-table td {
+  border-bottom-color: #3d3d3d;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+}
+
+.status-badge.success {
+  background-color: #009688;
+}
+
+.status-badge.warning {
+  background-color: #ff5252;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.action-btn.edit {
+  color: #009688;
+}
+
+.action-btn.delete {
+  color: #ff5252;
+}
+
+.action-btn:hover {
+  background-color: #f1f2f6;
+}
+
+.dark .action-btn:hover {
+  background-color: #3d3d3d;
+}
