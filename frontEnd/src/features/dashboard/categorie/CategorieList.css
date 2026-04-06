@@ -1,0 +1,159 @@
+.categorie-list-container {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.header-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-icon {
+  width: 3rem;
+  height: 3rem;
+  background-color: #1D4D3D;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.main-content-card {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.category-card {
+  border: 1px solid #eee;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.category-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+}
+
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: #1D4D3D;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.category-card:hover::before {
+  opacity: 1;
+}
+
+.category-img-container {
+  width: 100%;
+  height: 120px;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+.category-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.category-card:hover .category-img {
+  transform: scale(1.1);
+}
+
+.btn-create {
+  background-color: #1D4D3D;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-create:hover {
+  background-color: #153a2e;
+  color: white;
+  transform: scale(1.02);
+}
+
+.filters-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-box i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.search-box .form-control {
+  padding-left: 2.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  height: 3rem;
+}
+
+.action-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  border: none;
+}
+
+.edit-btn {
+  color: #0d6efd;
+  background-color: #e7f1ff;
+}
+
+.edit-btn:hover {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.delete-btn {
+  color: #dc3545;
+  background-color: #f8d7da;
+}
+
+.delete-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
