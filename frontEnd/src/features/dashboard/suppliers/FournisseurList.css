@@ -1,0 +1,166 @@
+.supplier-container {
+  padding: 2rem;
+  background-color: transparent;
+}
+
+.supplier-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.supplier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-title i {
+  font-size: 1.5rem;
+  color: #2d3436;
+}
+
+.header-title h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3436;
+}
+
+.btn-add {
+  background: #00b894;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add:hover {
+  background: #00a884;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.2);
+}
+
+.supplier-table-wrapper {
+  overflow-x: auto;
+}
+
+.supplier-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.supplier-table th {
+  text-align: left;
+  padding: 1rem;
+  border-bottom: 2px solid #f1f2f6;
+  color: #2d3436;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.supplier-table td {
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #f1f2f6;
+  color: #636e72;
+  font-size: 0.95rem;
+}
+
+.supplier-name {
+  font-weight: 700;
+  color: #2d3436;
+}
+
+.product-tag {
+  background: #e3fdf5;
+  color: #00b894;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.status-badge.actif {
+  background: #e3fdf5;
+  color: #00b894;
+}
+
+.status-badge.inactif {
+  background: #fff5f5;
+  color: #ff7675;
+}
+
+.supplier-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-edit, .btn-delete {
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-edit {
+  color: #0984e3;
+}
+
+.btn-edit:hover {
+  background: #e1f5fe;
+}
+
+.btn-delete {
+  color: #ff7675;
+}
+
+.btn-delete:hover {
+  background: #fff5f5;
+}
+
+.dark-mode .supplier-card {
+  background: #1e1e1e;
+}
+
+.dark-mode .header-title i, .dark-mode .header-title h2, .dark-mode .supplier-table th, .dark-mode .supplier-name {
+  color: white;
+}
+
+.dark-mode .supplier-table td {
+  color: #b2bec3;
+  border-bottom-color: #333;
+}
+
+.dark-mode .supplier-table th {
+  border-bottom-color: #333;
+}
+
+.dark-mode .product-tag {
+  background: #00b89422;
+}
