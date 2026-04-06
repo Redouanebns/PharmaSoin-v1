@@ -1,0 +1,109 @@
+/* ===== ACCUEIL CONTAINER ===== */
+.accueil-container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  transition: background-color 0.3s ease;
+}
+
+.accueil-container.dark-theme {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+/* ===== LOADING ===== */
+.accueil-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 1.5rem;
+  color: #636e72;
+  background: linear-gradient(135deg, #f8f9fa, #e3fdf5);
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  color: #00b894;
+  animation: pulse-spin 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-spin {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 0.7; }
+}
+
+.accueil-loading span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #636e72;
+}
+
+/* ===== GLOBAL SECTION STYLES ===== */
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+  color: #2d3436;
+}
+
+.dark-theme .section-title {
+  color: #f5f6fa;
+}
+
+/* ===== CONTAINER OVERRIDES ===== */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ===== DARK THEME GLOBAL OVERRIDES ===== */
+.accueil-container.dark-theme .product-card {
+  background: #1e1e1e;
+}
+
+.accueil-container.dark-theme .product-name {
+  color: #f5f6fa;
+}
+
+.accueil-container.dark-theme .product-price {
+  color: #f5f6fa;
+}
+
+.accueil-container.dark-theme .product-footer {
+  border-top-color: rgba(255,255,255,0.07);
+}
+
+.accueil-container.dark-theme .category-card {
+  background: #1e1e1e;
+}
+
+.accueil-container.dark-theme .category-card span {
+  color: #dfe6e9;
+}
+
+.accueil-container.dark-theme .category-card.active {
+  background: rgba(0,184,148,0.12);
+  border-color: #00b894;
+}
+
+.accueil-container.dark-theme .service-card {
+  background: #1e1e1e;
+}
+
+.accueil-container.dark-theme .testimonial-card {
+  background: #1e1e1e;
+}
+
+.accueil-container.dark-theme .about-section {
+  background: #181818;
+}
+
+.accueil-container.dark-theme .services-section {
+  background: #141414;
+}
+
+.accueil-container.dark-theme .testimonials-section {
+  background: #141414;
+}
