@@ -1,35 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  TrendingUp,
-  AlertTriangle,
-  ShoppingBag,
-  FileText,
-  FileSpreadsheet,
-  User,
-  Moon,
-  Sun,
-  Clock,
-  Brain,
-  Zap,
-  Calendar,
-  Package,
-  Truck,
-  Pill,
-} from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-  AreaChart,
-  Area,
-} from 'recharts';
+import { TrendingUp, AlertTriangle, ShoppingBag, FileText, FileSpreadsheet, Moon, Sun, Clock, Brain, Zap, Calendar, Package, Truck, Pill } from 'lucide-react';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Cell, AreaChart, Area } from 'recharts';
 import api from '../../../services/api';
 import './Statistic.css';
 
@@ -52,6 +23,8 @@ const defaultSummary = {
     pendingCommandes: 0,
     expiredMedicines: 0,
     lowStockMedicines: 0,
+    onlineOrders: 0,
+    pendingOnlineOrders: 0,
   },
   charts: {
     salesTrend: [],
@@ -76,11 +49,58 @@ const formatCardValue = (card) => {
   return value.toLocaleString('fr-FR');
 };
 
-const Statistics = ({ isDarkMode, toggleDarkMode }) => {
+const escapeCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const buildStatisticsCsv = (summary, currentUser) => {
+  const lines = [];
+  const now = new Date().toLocaleString('fr-FR');
+
+  lines.push([escapeCsv('Section'), escapeCsv('Clé'), escapeCsv('Valeur'), escapeCsv('Détail')].join(';'));
+  lines.push([escapeCsv('Meta'), escapeCsv('Utilisateur'), escapeCsv(currentUser?.name || '—'), escapeCsv(currentUser?.role || '—')].join(';'));
+  lines.push([escapeCsv('Meta'), escapeCsv('Date export'), escapeCsv(now), escapeCsv('Export généré depuis le dashboard')].join(';'));
+
+  Object.entries(summary.cards || {}).forEach(([key, card]) => {
+    lines.push([
+      escapeCsv('Cartes'),
+      escapeCsv(key),
+      escapeCsv(`${card?.value ?? ''}${card?.suffix ? ` ${card.suffix}` : ''}`),
+      escapeCsv(card?.helper || ''),
+    ].join(';'));
+  });
+
+  Object.entries(summary.meta || {}).forEach(([key, value]) => {
+    lines.push([escapeCsv('Métriques'), escapeCsv(key), escapeCsv(value), escapeCsv('')].join(';'));
+  });
+
+  (summary.charts?.salesTrend || []).forEach((item) => {
+    lines.push([escapeCsv('Graphiques'), escapeCsv('salesTrend'), escapeCsv(item.sales), escapeCsv(`${item.date} · ${item.orders} commande(s)`) ].join(';'));
+  });
+
+  (summary.charts?.topProducts || []).forEach((item) => {
+    lines.push([escapeCsv('Graphiques'), escapeCsv('topProducts'), escapeCsv(item.value), escapeCsv(`${item.name} · ${item.sold} unité(s) · Stock ${item.stock}`)].join(';'));
+  });
+
+  (summary.charts?.seasonality || []).forEach((item) => {
+    lines.push([escapeCsv('Graphiques'), escapeCsv('seasonality'), escapeCsv(item.sales), escapeCsv(`${item.month} · ${item.orders} commande(s)`) ].join(';'));
+  });
+
+  (summary.alerts || []).forEach((alert, index) => {
+    lines.push([escapeCsv('Alertes'), escapeCsv(`alerte_${index + 1}`), escapeCsv(alert?.type || 'info'), escapeCsv(alert?.label || '')].join(';'));
+  });
+
+  (summary.insights || []).forEach((insight, index) => {
+    lines.push([escapeCsv('Insights'), escapeCsv(`insight_${index + 1}`), escapeCsv(insight?.icon || ''), escapeCsv(insight?.text || '')].join(';'));
+  });
+
+  return lines.join('\n');
+};
+
+const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
   const [summary, setSummary] = useState(defaultSummary);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [exportFeedback, setExportFeedback] = useState('');
 
   const fetchSummary = useCallback(async () => {
     try {
@@ -114,6 +134,20 @@ const Statistics = ({ isDarkMode, toggleDarkMode }) => {
   const alerts = useMemo(() => summary.alerts || [], [summary]);
   const insights = useMemo(() => summary.insights || [], [summary]);
 
+  const handleExport = () => {
+    const csv = buildStatisticsCsv(summary, currentUser);
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `statistiques-${currentUser?.role || 'dashboard'}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    setExportFeedback('Export CSV généré avec succès.');
+    window.setTimeout(() => setExportFeedback(''), 3200);
+  };
+
   if (loading) {
     return <div className="p-5 text-center">Chargement des statistiques depuis l’API...</div>;
   }
@@ -123,34 +157,31 @@ const Statistics = ({ isDarkMode, toggleDarkMode }) => {
       <div className="stats-top-bar">
         <div className="top-bar-left">
           <h2>Dashboard</h2>
+          <small className="text-muted">Vue synthétique des données backend et export des statistiques</small>
         </div>
-        <div className="top-bar-right">
+        <div className="top-bar-right stats-actions">
           <div className="clock-display">
             <Clock size={18} className="me-2" />
             <span>{currentTime.toLocaleTimeString()}</span>
           </div>
-          <button onClick={toggleDarkMode} className="theme-btn">
+          <button onClick={handleExport} className="export-btn" type="button">
+            <FileSpreadsheet size={18} />
+            Exporter
+          </button>
+          <button onClick={toggleDarkMode} className="theme-btn" type="button">
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <div className="user-profile">
-            <div className="user-avatar">
-              <User size={20} />
-            </div>
-            <span>Admin</span>
-          </div>
         </div>
       </div>
 
+      {exportFeedback && <div className="export-feedback">{exportFeedback}</div>}
       {error && <div className="alert alert-danger mb-4">{error}</div>}
 
       <div className="stats-grid">
         <div className="stat-card blue">
           <p className="card-label">{cards.monthlyRevenue.label}</p>
           <h3 className="card-value">{formatCardValue(cards.monthlyRevenue)}</h3>
-          <p className="card-footer">
-            <TrendingUp size={14} className="me-1" />
-            {cards.monthlyRevenue.helper}
-          </p>
+          <p className="card-footer"><TrendingUp size={14} className="me-1" />{cards.monthlyRevenue.helper}</p>
         </div>
         <div className="stat-card red">
           <p className="card-label">{cards.stockAlerts.label}</p>
@@ -173,7 +204,7 @@ const Statistics = ({ isDarkMode, toggleDarkMode }) => {
         <div className="chart-container main-chart">
           <div className="chart-header">
             <h4>Tendance des commandes (7 derniers jours)</h4>
-            <span className="text-muted small">Données chargées depuis l’API Laravel</span>
+            <span className="text-muted small">Données Laravel synchronisées</span>
           </div>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={300}>
@@ -182,14 +213,7 @@ const Statistics = ({ isDarkMode, toggleDarkMode }) => {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#b2bec3', fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#b2bec3', fontSize: 12 }} />
                 <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} DH`, 'Montant']} />
-                <Line
-                  type="monotone"
-                  dataKey="sales"
-                  stroke="#009688"
-                  strokeWidth={3}
-                  dot={{ r: 6, fill: '#009688', strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 8 }}
-                />
+                <Line type="monotone" dataKey="sales" stroke="#009688" strokeWidth={3} dot={{ r: 6, fill: '#009688', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -197,7 +221,7 @@ const Statistics = ({ isDarkMode, toggleDarkMode }) => {
 
         <div className="chart-container side-chart">
           <div className="chart-header">
-            <h4>Top produits par valeur de stock</h4>
+            <h4>Top produits par valeur</h4>
           </div>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={300}>
@@ -247,8 +271,7 @@ const Statistics = ({ isDarkMode, toggleDarkMode }) => {
               </ResponsiveContainer>
             </div>
             <p className="analysis-note">
-              <strong>{meta.commandes}</strong> commande(s), <strong>{meta.suppliers}</strong> fournisseur(s),{' '}
-              <strong>{meta.deliveryRate}%</strong> de taux de livraison.
+              <strong>{meta.commandes}</strong> commande(s) fournisseur, <strong>{meta.onlineOrders || 0}</strong> commande(s) web, <strong>{meta.deliveryRate}%</strong> de taux de livraison.
             </p>
           </div>
 
@@ -297,32 +320,15 @@ const Statistics = ({ isDarkMode, toggleDarkMode }) => {
 
         <div className="reports-section">
           <h4>Résumé opérationnel</h4>
-          <p>Toutes les cartes et les graphiques sont maintenant alimentés par l’API backend.</p>
+          <p>Toutes les cartes et les graphiques sont alimentés par l’API backend.</p>
           <div className="reports-actions flex-column align-items-start gap-3">
-            <div className="d-flex align-items-center gap-2">
-              <Pill size={18} />
-              <span>{meta.medicines} médicament(s)</span>
-            </div>
-            <div className="d-flex align-items-center gap-2">
-              <ShoppingBag size={18} />
-              <span>{meta.categories} catégorie(s)</span>
-            </div>
-            <div className="d-flex align-items-center gap-2">
-              <Truck size={18} />
-              <span>{meta.pendingCommandes} commande(s) en attente</span>
-            </div>
-            <div className="d-flex align-items-center gap-2">
-              <Package size={18} />
-              <span>{meta.lowStockMedicines} produit(s) à stock faible</span>
-            </div>
-            <div className="d-flex align-items-center gap-2">
-              <FileText size={18} />
-              <span>{meta.ordonnances} ordonnance(s)</span>
-            </div>
-            <div className="d-flex align-items-center gap-2">
-              <FileSpreadsheet size={18} />
-              <span>{meta.expiredMedicines} produit(s) expiré(s)</span>
-            </div>
+            <div className="d-flex align-items-center gap-2"><Pill size={18} /><span>{meta.medicines} médicament(s)</span></div>
+            <div className="d-flex align-items-center gap-2"><ShoppingBag size={18} /><span>{meta.categories} catégorie(s)</span></div>
+            <div className="d-flex align-items-center gap-2"><Truck size={18} /><span>{meta.pendingCommandes} commande(s) fournisseur en attente</span></div>
+            <div className="d-flex align-items-center gap-2"><Truck size={18} /><span>{meta.pendingOnlineOrders || 0} commande(s) web en attente</span></div>
+            <div className="d-flex align-items-center gap-2"><Package size={18} /><span>{meta.lowStockMedicines} produit(s) à stock faible</span></div>
+            <div className="d-flex align-items-center gap-2"><FileText size={18} /><span>{meta.ordonnances} ordonnance(s)</span></div>
+            <div className="d-flex align-items-center gap-2"><FileSpreadsheet size={18} /><span>{meta.expiredMedicines} produit(s) expiré(s)</span></div>
           </div>
         </div>
       </div>
