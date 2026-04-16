@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
 import CategorieFormModal from './CategorieFormModal';
@@ -8,6 +9,7 @@ import './CategorieList.css';
 const normalizeCategory = (category) => ({
   ...category,
   translations: Array.isArray(category.translations) ? category.translations : [],
+  medicines_count: Number(category.medicines_count || 0),
 });
 
 const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
@@ -18,6 +20,7 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
   const [clock, setClock] = useState('00:00:00');
   const [searchTerm, setSearchTerm] = useState('');
   const { currentLanguage } = useLanguage();
+  const navigate = useNavigate();
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
@@ -63,12 +66,14 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
     setIsModalOpen(true);
   };
 
-  const handleEditCategory = (category) => {
+  const handleEditCategory = (event, category) => {
+    event.stopPropagation();
     setEditingCategory(category);
     setIsModalOpen(true);
   };
 
-  const handleDeleteCategory = async (id) => {
+  const handleDeleteCategory = async (event, id) => {
+    event.stopPropagation();
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
 
     try {
@@ -93,6 +98,10 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
     }
   };
 
+  const openCategoryMedicines = (category) => {
+    navigate(`/dashboard/medicines?category=${category.id}`);
+  };
+
   return (
     <div className={`categorie-list-container ${isDarkMode ? 'dark-theme' : ''}`}>
       <div className="header-card">
@@ -102,7 +111,7 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
           </div>
           <div>
             <h1 className="h4 fw-bold mb-0 text-dark">Organisation des Catégories</h1>
-            <p className="text-muted small mb-0">Gérez vos catégories de médicaments et produits</p>
+            <p className="text-muted small mb-0">Cliquez sur une catégorie pour voir immédiatement ses médicaments</p>
           </div>
         </div>
 
@@ -150,10 +159,19 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
         <div className="row g-4">
           {loading ? (
             <div className="col-12 text-center text-muted py-5">Chargement...</div>
+          ) : filteredCategories.length === 0 ? (
+            <div className="col-12 text-center text-muted py-5">Aucune catégorie trouvée.</div>
           ) : (
             filteredCategories.map((category) => (
               <div key={category.id} className="col-12 col-md-6 col-lg-4">
-                <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="category-card">
+                <motion.button
+                  type="button"
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="category-card category-clickable"
+                  onClick={() => openCategoryMedicines(category)}
+                >
                   <div className="text-center">
                     <div className="category-img-container mb-3">
                       <img
@@ -164,7 +182,14 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
                       />
                     </div>
                     <h3 className="h5 fw-bold text-dark mb-3">{category.name}</h3>
-                    <p className="text-muted small mb-4">{category.description}</p>
+                    <p className="text-muted small mb-3">{category.description}</p>
+
+                    <div className="category-meta mb-3">
+                      <span className="category-pill">
+                        <i className="fas fa-pills me-2"></i>
+                        {category.medicines_count} médicament{category.medicines_count > 1 ? 's' : ''}
+                      </span>
+                    </div>
 
                     <div className="mb-4">
                       <span className="text-uppercase text-muted fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '0.05em' }}>
@@ -173,16 +198,19 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
                       <p className="text-dark small mt-1 mb-0">{category.criteria}</p>
                     </div>
 
-                    <div className="d-flex justify-content-center gap-3">
-                      <button onClick={() => handleEditCategory(category)} className="action-btn edit-btn" title="Modifier">
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button onClick={() => handleDeleteCategory(category.id)} className="action-btn delete-btn" title="Supprimer">
-                        <i className="fas fa-trash-alt"></i>
-                      </button>
+                    <div className="category-card-footer">
+                      <span className="category-link-label">Voir les médicaments</span>
+                      <div className="d-flex justify-content-center gap-3">
+                        <button onClick={(event) => handleEditCategory(event, category)} className="action-btn edit-btn" title="Modifier">
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button onClick={(event) => handleDeleteCategory(event, category.id)} className="action-btn delete-btn" title="Supprimer">
+                          <i className="fas fa-trash-alt"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
+                </motion.button>
               </div>
             ))
           )}
