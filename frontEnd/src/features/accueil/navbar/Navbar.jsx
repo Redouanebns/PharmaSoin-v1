@@ -39,6 +39,7 @@ export default function Navbar({
   searchQuery = '',
   setSearchQuery,
   onConnexionClick,
+  onInscriptionClick,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -111,6 +112,15 @@ export default function Navbar({
     }
 
     navigate('/authentification');
+  };
+
+  const handleInscription = () => {
+    if (onInscriptionClick) {
+      onInscriptionClick();
+      return;
+    }
+
+    navigate('/authentification?mode=register');
   };
 
   const renderSelectorButtons = () => (
@@ -259,9 +269,14 @@ export default function Navbar({
 
               <div className="d-flex justify-content-end align-items-center gap-2 flex-wrap">
                 {renderSelectorButtons()}
-                <button className="btn btn-connexion" type="button" onClick={handleConnexion}>
-                  {t('nav.login', 'Connexion')}
-                </button>
+                <div className="nav-auth-actions nav-auth-actions--mobile">
+                  <button className="btn btn-nav-auth btn-connexion" type="button" onClick={handleConnexion}>
+                    {t('nav.login', 'Connexion')}
+                  </button>
+                  <button className="btn btn-nav-auth btn-inscription" type="button" onClick={handleInscription}>
+                    {t('nav.register', 'Inscription')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -291,9 +306,14 @@ export default function Navbar({
 
             {renderSelectorButtons()}
 
-            <button className="btn btn-connexion" type="button" onClick={handleConnexion}>
-              {t('nav.login', 'Connexion')}
-            </button>
+            <div className="nav-auth-actions">
+              <button className="btn btn-nav-auth btn-connexion" type="button" onClick={handleConnexion}>
+                {t('nav.login', 'Connexion')}
+              </button>
+              <button className="btn btn-nav-auth btn-inscription" type="button" onClick={handleInscription}>
+                {t('nav.register', 'Inscription')}
+              </button>
+            </div>
           </div>
         </div>
       </nav>

@@ -5,6 +5,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import api from '../../services/api';
 import Navbar from './navbar/Navbar';
 import HeroSection from './herosection/HeroSection';
+import BrandLoader from '../../components/BrandLoader';
 import Categorie from './Accueil-categorie/Categorie';
 import Medicament from './Accuiel-medicament/Medicament';
 import Services from './services/Services';
@@ -30,7 +31,7 @@ const Accueil = ({ searchQuery, setSearchQuery }) => {
       setError(false);
 
       try {
-        const [medRes, catRes] = await Promise.all([api.get('http://localhost:8000/api/medicaments'), api.get('http://localhost:8000/api/categories')]);
+        const [medRes, catRes] = await Promise.all([api.get('/public/medicaments'), api.get('/public/categories')]);
         setMedicines(Array.isArray(medRes.data) ? medRes.data : []);
         setCategories(Array.isArray(catRes.data) ? catRes.data : []);
       } catch (e) {
@@ -49,21 +50,24 @@ const Accueil = ({ searchQuery, setSearchQuery }) => {
     const query = (searchQuery || '').toLowerCase();
     const matchesSearch =
       (m.nom || '').toLowerCase().includes(query) || (m.dci || '').toLowerCase().includes(query);
-    return matchesCategory && matchesSearch;
+    return matchesCategory && matchesSearch && !m.ordonnance;
   });
 
   const handleConnexionClick = () => {
     navigate('/authentification');
   };
 
+  const handleInscriptionClick = () => {
+    navigate('/authentification?mode=register');
+  };
+
   if (loading) {
     return (
-      <div className="accueil-loading">
-        <div className="loading-spinner">
-          <i className="fas fa-plus-circle"></i>
-        </div>
-        <span>{t('common.loading_pharmacy', 'Chargement de la pharmacie...')}</span>
-      </div>
+      <BrandLoader
+        title="PharmaSoin"
+        message={t('common.loading_pharmacy', 'Chargement de la pharmacie...')}
+        kicker="Accueil"
+      />
     );
   }
 
@@ -73,6 +77,7 @@ const Accueil = ({ searchQuery, setSearchQuery }) => {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onConnexionClick={handleConnexionClick}
+        onInscriptionClick={handleInscriptionClick}
         showDarkModeToggle={false}
       />
 
