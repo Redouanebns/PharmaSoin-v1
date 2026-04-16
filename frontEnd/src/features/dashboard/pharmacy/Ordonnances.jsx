@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Edit, Trash2, FileText, Clock, Moon, Sun, User, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, FileText, Clock, Moon, Sun, Loader2 } from 'lucide-react';
 import api from '../../../services/api';
 import OrdonnanceFormModal from './OrdonnanceFormModal';
 import './Ordonnances.css';
@@ -103,21 +103,16 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
       <div className="stats-top-bar">
         <div className="top-bar-left">
           <h2>Gestion des Ordonnances</h2>
+          <p className="page-subtitle">Création rapide et suivi des prescriptions, sans champ produit manuel.</p>
         </div>
         <div className="top-bar-right">
           <div className="clock-display">
             <Clock size={18} className="me-2" />
             <span>{currentTime.toLocaleTimeString()}</span>
           </div>
-          <button onClick={toggleDarkMode} className="theme-btn">
+          <button onClick={toggleDarkMode} className="theme-btn" type="button">
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <div className="user-profile">
-            <div className="user-avatar">
-              <User size={20} />
-            </div>
-            <span>Admin</span>
-          </div>
         </div>
       </div>
 
@@ -125,7 +120,10 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
         <div className="card-header-flex">
           <div className="header-title">
             <FileText size={24} className="me-2" />
-            <h3>Gestion des Ordonnances</h3>
+            <div>
+              <h3>Liste des ordonnances</h3>
+              <p className="header-caption">La dispensation est ensuite gérée au moment de la vente.</p>
+            </div>
           </div>
           <button className="add-btn" onClick={handleAdd}>
             <Plus size={18} className="me-1" />
@@ -165,7 +163,6 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
                   <th>Patient</th>
                   <th>Médecin</th>
                   <th>Date Ordonnance</th>
-                  <th>Produits</th>
                   <th>Statut</th>
                   <th>Actions</th>
                 </tr>
@@ -180,7 +177,6 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
                       <td>{ordonnance.patient}</td>
                       <td>{ordonnance.medecin}</td>
                       <td>{ordonnance.date}</td>
-                      <td>{ordonnance.produits}</td>
                       <td>
                         <span className={`status-badge ${ordonnance.statut === 'Dispensée' ? 'success' : 'warning'}`}>
                           {ordonnance.statut}
@@ -198,7 +194,7 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="empty-state">
+                    <td colSpan="6" className="empty-state">
                       Aucune ordonnance trouvée.
                     </td>
                   </tr>

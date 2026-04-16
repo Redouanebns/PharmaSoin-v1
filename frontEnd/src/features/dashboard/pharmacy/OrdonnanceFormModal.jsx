@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { CalendarDays, Loader2, Stethoscope, UserRound, X } from 'lucide-react';
 import './OrdonnanceFormModal.css';
 
 const initialFormState = {
@@ -7,7 +7,6 @@ const initialFormState = {
   medecin: '',
   date: '',
   statut: 'En attente',
-  produits: ''
 };
 
 const OrdonnanceFormModal = ({ isOpen, onClose, onSave, initialData, isSaving = false }) => {
@@ -20,96 +19,103 @@ const OrdonnanceFormModal = ({ isOpen, onClose, onSave, initialData, isSaving = 
         medecin: initialData.medecin || '',
         date: initialData.date || '',
         statut: initialData.statut || 'En attente',
-        produits: initialData.produits || ''
       });
     } else {
       setFormData({
         ...initialFormState,
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
       });
     }
   }, [initialData, isOpen]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (event) => {
+    const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     onSave(formData);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h3>{initialData ? 'Modifier Ordonnance' : 'Nouvelle Ordonnance'}</h3>
-          <button className="close-btn" onClick={onClose} disabled={isSaving}>
+    <div className="modal-overlay" onClick={(event) => event.target === event.currentTarget && !isSaving && onClose()}>
+      <div className="ordonnance-modal-card">
+        <div className="ordonnance-modal-header">
+          <div>
+            <span className="ordonnance-kicker">Prescription patient</span>
+            <h3>{initialData ? 'Modifier l’ordonnance' : 'Nouvelle ordonnance'}</h3>
+            <p>Renseignez l’identité du patient, le prescripteur et le statut. Les produits seront gérés lors de la dispensation.</p>
+          </div>
+          <button className="close-btn" onClick={onClose} disabled={isSaving} type="button">
             <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label>Nom du Patient</label>
-              <input
-                type="text"
-                name="patient"
-                required
-                value={formData.patient}
-                onChange={handleChange}
-                placeholder="Ex: Jean Dupont"
-              />
+        <form onSubmit={handleSubmit} className="ordonnance-modal-form">
+          <div className="ordonnance-form-grid">
+            <div className="ordonnance-field-card">
+              <label>Nom du patient</label>
+              <div className="input-with-icon">
+                <UserRound size={18} />
+                <input
+                  type="text"
+                  name="patient"
+                  required
+                  value={formData.patient}
+                  onChange={handleChange}
+                  placeholder="Ex: Jean Dupont"
+                />
+              </div>
+              <small>Nom complet figurant sur l’ordonnance.</small>
             </div>
 
-            <div className="form-group">
-              <label>Nom du Médecin</label>
-              <input
-                type="text"
-                name="medecin"
-                required
-                value={formData.medecin}
-                onChange={handleChange}
-                placeholder="Ex: Dr. Mohamed Taha"
-              />
+            <div className="ordonnance-field-card">
+              <label>Nom du médecin</label>
+              <div className="input-with-icon">
+                <Stethoscope size={18} />
+                <input
+                  type="text"
+                  name="medecin"
+                  required
+                  value={formData.medecin}
+                  onChange={handleChange}
+                  placeholder="Ex: Dr. Mohamed Taha"
+                />
+              </div>
+              <small>Renseignez le prescripteur ou le cabinet médical.</small>
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Date de l'Ordonnance</label>
-              <input
-                type="date"
-                name="date"
-                required
-                value={formData.date}
-                onChange={handleChange}
-              />
+          <div className="ordonnance-form-grid secondary-grid">
+            <div className="ordonnance-field-card">
+              <label>Date de l’ordonnance</label>
+              <div className="input-with-icon">
+                <CalendarDays size={18} />
+                <input
+                  type="date"
+                  name="date"
+                  required
+                  value={formData.date}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
-            <div className="form-group">
+            <div className="ordonnance-field-card">
               <label>Statut</label>
               <select name="statut" value={formData.statut} onChange={handleChange}>
                 <option value="En attente">En attente</option>
                 <option value="Dispensée">Dispensée</option>
               </select>
+              <small>Le statut passe automatiquement à « Dispensée » lors d’une vente liée.</small>
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Produits (séparés par virgule)</label>
-            <textarea
-              required
-              rows="4"
-              name="produits"
-              value={formData.produits}
-              onChange={handleChange}
-              placeholder="Ex: Doliprane 1000mg, Amoxicilline 500mg"
-            />
+          <div className="ordonnance-info-banner">
+            <strong>Astuce :</strong> plus besoin de saisir manuellement les produits ici. La sélection des médicaments se fait dans le module de vente.
           </div>
 
           <div className="modal-footer">
@@ -122,7 +128,7 @@ const OrdonnanceFormModal = ({ isOpen, onClose, onSave, initialData, isSaving = 
                   <Loader2 size={18} className="spin me-1" /> Enregistrement...
                 </>
               ) : (
-                'Enregistrer'
+                initialData ? 'Mettre à jour' : 'Enregistrer'
               )}
             </button>
           </div>
