@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Ordonnance;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,11 +21,11 @@ class OrdonnanceController extends Controller
             'patient' => ['required', 'string', 'max:255'],
             'medecin' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
-            'produits' => ['required', 'string'],
             'statut' => ['required', 'in:En attente,Dispensée'],
         ]);
 
         $validated['numero'] = $this->generateNumero();
+        $validated['produits'] = null;
 
         $ordonnance = Ordonnance::create($validated);
 
@@ -44,10 +43,10 @@ class OrdonnanceController extends Controller
             'patient' => ['required', 'string', 'max:255'],
             'medecin' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
-            'produits' => ['required', 'string'],
             'statut' => ['required', 'in:En attente,Dispensée'],
         ]);
 
+        $validated['produits'] = $ordonnance->produits;
         $ordonnance->update($validated);
 
         return response()->json($this->formatOrdonnance($ordonnance->fresh()));
@@ -64,8 +63,10 @@ class OrdonnanceController extends Controller
 
     private function generateNumero(): string
     {
-        $lastId = Ordonnance::max('id') + 1;
-        return 'ORD' . str_pad($lastId, 3, '0', STR_PAD_LEFT);
+        $year = now()->format('Y');
+        $count = Ordonnance::whereYear('created_at', now()->year)->count() + 1;
+
+        return sprintf('ORD-%s-%03d', $year, $count);
     }
 
     private function formatOrdonnance(Ordonnance $ordonnance): array
@@ -76,11 +77,9 @@ class OrdonnanceController extends Controller
             'patient' => $ordonnance->patient,
             'medecin' => $ordonnance->medecin,
             'date' => $ordonnance->date?->format('Y-m-d'),
-            'produits' => $ordonnance->produits,
             'statut' => $ordonnance->statut,
             'created_at' => $ordonnance->created_at,
             'updated_at' => $ordonnance->updated_at,
         ];
     }
 }
-

@@ -17,16 +17,29 @@ class Commande extends Model
         'montant',
         'statut',
         'produits',
+        'stock_integre',
     ];
 
     protected $casts = [
         'produits' => 'array',
-        'date_commande' => 'date',
-        'date_livraison_prevue' => 'date',
+        'stock_integre' => 'boolean',
+        'date_commande' => 'date:Y-m-d',
+        'date_livraison_prevue' => 'date:Y-m-d',
+        'montant' => 'decimal:2',
     ];
 
     public function fournisseur()
     {
         return $this->belongsTo(Fournisseur::class);
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
     }
 }
