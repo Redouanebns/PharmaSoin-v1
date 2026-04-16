@@ -1,47 +1,80 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { CreditCard, ShieldCheck, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import api from '../../services/api';
+import { CreditCard, ShieldCheck, ArrowLeft, CheckCircle2, LayoutDashboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import './Paiement.css';
 
-const Payment = () => {
+const Payment = ({ currentUser }) => {
   const { cartItems, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [resultOrder, setResultOrder] = useState(null);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     cardNumber: '',
     expiry: '',
     cvv: '',
-    name: ''
+    name: currentUser?.name || '',
+    phone: currentUser?.phone || '',
+    deliveryAddress: currentUser?.address || '',
   });
+
+  const summary = useMemo(
+    () => ({
+      items: cartItems.map((item) => ({
+        medicine_id: item.id,
+        qte: item.quantity,
+        prix_unitaire: Number(item.prix || 0),
+      })),
+      maskedCard: formData.cardNumber ? `**** **** **** ${formData.cardNumber.replace(/\s+/g, '').slice(-4)}` : '',
+    }),
+    [cartItems, formData.cardNumber],
+  );
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsProcessing(true);
-    
-    // Simuler un délai de paiement
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsSuccess(true);
-      // Vider le panier après succès
+    setError('');
+
+    try {
+      const response = await api.post('/client/orders/checkout', {
+        contact_phone: formData.phone,
+        delivery_address: formData.deliveryAddress,
+        payment_reference: summary.maskedCard,
+        produits: summary.items,
+      });
+
+      setResultOrder(response.data?.order || null);
       clearCart();
-    }, 2500);
+    } catch (requestError) {
+      console.error(requestError);
+      const validationErrors = requestError.response?.data?.errors;
+      if (validationErrors) {
+        const firstError = Object.values(validationErrors)[0]?.[0];
+        setError(firstError || 'Impossible de finaliser le paiement.');
+      } else {
+        setError(requestError.response?.data?.message || 'Impossible de finaliser le paiement.');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  if (cartItems.length === 0 && !isSuccess) {
+  if (cartItems.length === 0 && !resultOrder) {
     return (
       <div className="payment-empty">
         <div className="text-center">
           <CreditCard size={64} className="mb-4 text-muted opacity-20" />
           <h2>Votre panier est vide</h2>
-          <p>Ajoutez des produits avant de procéder au paiement.</p>
+          <p>Ajoutez des médicaments sans ordonnance avant de procéder au paiement.</p>
           <button className="btn btn-primary mt-4" onClick={() => navigate('/home')}>
             Retour à la boutique
           </button>
@@ -59,8 +92,8 @@ const Payment = () => {
         </button>
 
         <AnimatePresence mode="wait">
-          {!isSuccess ? (
-            <motion.div 
+          {!resultOrder ? (
+            <motion.div
               key="payment-form"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -71,30 +104,65 @@ const Payment = () => {
                 <div className="payment-card main-card">
                   <div className="card-header-custom">
                     <CreditCard className="text-success" />
-                    <h3>Détails du Paiement</h3>
+                    <div>
+                      <h3>Détails du Paiement</h3>
+                      <p className="payment-subtitle">Le paiement est saisi maintenant, puis la commande sera vérifiée par l’admin ou le pharmacien avant validation finale.</p>
+                    </div>
                   </div>
-                  
+
                   <form onSubmit={handleSubmit} className="payment-form">
-                    <div className="mb-4">
-                      <label className="form-label">Nom sur la carte</label>
-                      <input 
-                        type="text" 
-                        name="name"
-                        className="form-control custom-input" 
-                        placeholder="M. Jean Dupont"
-                        required
-                        value={formData.name}
-                        onChange={handleInputChange}
-                      />
+                    {error && <div className="payment-alert error">{error}</div>}
+
+                    <div className="payment-customer-box">
+                      <h4>Informations client</h4>
+                      <div className="row">
+                        <div className="col-md-6 mb-4">
+                          <label className="form-label">Nom sur la carte</label>
+                          <input
+                            type="text"
+                            name="name"
+                            className="form-control custom-input"
+                            placeholder="M. Jean Dupont"
+                            required
+                            value={formData.name}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                        <div className="col-md-6 mb-4">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="text"
+                            name="phone"
+                            className="form-control custom-input"
+                            placeholder="+212600000000"
+                            required
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="form-label">Adresse de livraison / retrait</label>
+                        <textarea
+                          name="deliveryAddress"
+                          className="form-control custom-input"
+                          rows="3"
+                          placeholder="Adresse complète du client"
+                          required
+                          value={formData.deliveryAddress}
+                          onChange={handleInputChange}
+                        />
+                      </div>
                     </div>
 
                     <div className="mb-4">
                       <label className="form-label">Numéro de carte</label>
                       <div className="input-group-custom">
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="cardNumber"
-                          className="form-control custom-input" 
+                          className="form-control custom-input"
                           placeholder="0000 0000 0000 0000"
                           maxLength="19"
                           required
@@ -111,10 +179,10 @@ const Payment = () => {
                     <div className="row">
                       <div className="col-md-6 mb-4">
                         <label className="form-label">Date d'expiration</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="expiry"
-                          className="form-control custom-input" 
+                          className="form-control custom-input"
                           placeholder="MM/YY"
                           maxLength="5"
                           required
@@ -124,10 +192,10 @@ const Payment = () => {
                       </div>
                       <div className="col-md-6 mb-4">
                         <label className="form-label">CVV</label>
-                        <input 
-                          type="password" 
+                        <input
+                          type="password"
                           name="cvv"
-                          className="form-control custom-input" 
+                          className="form-control custom-input"
                           placeholder="***"
                           maxLength="3"
                           required
@@ -139,11 +207,11 @@ const Payment = () => {
 
                     <div className="security-info mb-4">
                       <ShieldCheck size={18} className="text-success" />
-                      <span>Paiement sécurisé SSL 256-bit</span>
+                      <span>Paiement sécurisé SSL 256-bit · commande créée en attente de validation.</span>
                     </div>
 
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       className="btn btn-success w-100 py-3 fw-bold payment-submit-btn"
                       disabled={isProcessing}
                     >
@@ -160,10 +228,10 @@ const Payment = () => {
                 <div className="payment-card summary-card">
                   <h3>Récapitulatif</h3>
                   <div className="summary-items">
-                    {cartItems.map(item => (
+                    {cartItems.map((item) => (
                       <div key={item.id} className="summary-item">
                         <span className="item-name">{item.nom} x {item.quantity}</span>
-                        <span className="item-price">{(item.prix * item.quantity).toFixed(2)} DH</span>
+                        <span className="item-price">{(Number(item.prix) * item.quantity).toFixed(2)} DH</span>
                       </div>
                     ))}
                   </div>
@@ -176,6 +244,10 @@ const Payment = () => {
                       <span>Livraison</span>
                       <span className="text-success">Gratuite</span>
                     </div>
+                    <div className="d-flex justify-content-between mb-2">
+                      <span>Validation pharmacie</span>
+                      <span className="text-warning">En attente</span>
+                    </div>
                     <hr />
                     <div className="d-flex justify-content-between total-row">
                       <span>Total à payer</span>
@@ -186,7 +258,7 @@ const Payment = () => {
               </div>
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               key="success-message"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -196,12 +268,22 @@ const Payment = () => {
                 <div className="success-icon">
                   <CheckCircle2 size={80} className="text-success" />
                 </div>
-                <h2>Paiement Réussi !</h2>
-                <p>Votre commande a été enregistrée avec succès. Vous recevrez un e-mail de confirmation sous peu.</p>
-                <div className="order-number">Numéro de commande : #PH-{Math.floor(Math.random() * 1000000)}</div>
-                <button className="btn btn-success px-5 py-3 mt-4" onClick={() => navigate('/home')}>
-                  Retour à l'accueil
-                </button>
+                <h2>Paiement enregistré !</h2>
+                <p>Votre commande en ligne a été créée. Elle est maintenant visible dans le dashboard admin et pharmacien pour acceptation ou refus.</p>
+                <div className="order-number">Commande : {resultOrder.numero}</div>
+                <div className="payment-success-meta">
+                  <span>Statut: {resultOrder.statut}</span>
+                  <span>Total: {Number(resultOrder.total || 0).toFixed(2)} DH</span>
+                </div>
+                <div className="payment-success-actions">
+                  <button className="btn btn-outline-success px-4 py-3 mt-4" onClick={() => navigate('/home')}>
+                    Retour à l'accueil
+                  </button>
+                  <button className="btn btn-success px-4 py-3 mt-4" onClick={() => navigate('/client-dashboard')}>
+                    <LayoutDashboard size={18} className="me-2" />
+                    Voir mon dashboard
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
