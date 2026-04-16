@@ -1,0 +1,211 @@
+.brand-loader-shell {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.brand-loader-shell.fullscreen {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(15, 118, 110, 0.18), transparent 34%),
+    linear-gradient(180deg, #f6fbfa 0%, #edf7f5 48%, #f7fafc 100%);
+}
+
+.brand-loader-card {
+  width: min(100%, 420px);
+  border-radius: 28px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.35rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-loader-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.06), rgba(19, 78, 74, 0.02));
+  pointer-events: none;
+}
+
+.brand-loader-visual,
+.brand-loader-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-loader-visual {
+  width: 132px;
+  height: 132px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.brand-loader-ring {
+  position: absolute;
+  border-radius: 50%;
+  border-style: solid;
+}
+
+.brand-loader-ring--outer {
+  inset: 0;
+  border-width: 4px;
+  border-color: rgba(15, 118, 110, 0.12);
+  border-top-color: #0f766e;
+  border-right-color: #14b8a6;
+  animation: brand-loader-rotate 1.5s linear infinite;
+}
+
+.brand-loader-ring--inner {
+  inset: 18px;
+  border-width: 3px;
+  border-color: rgba(15, 118, 110, 0.08);
+  border-bottom-color: #134e4a;
+  border-left-color: #0f766e;
+  animation: brand-loader-rotate-reverse 1.15s linear infinite;
+}
+
+.brand-loader-core {
+  width: 62px;
+  height: 62px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  box-shadow: 0 16px 30px rgba(15, 118, 110, 0.28);
+  position: relative;
+}
+
+.brand-loader-cross {
+  position: absolute;
+  inset: 50%;
+  background: #ffffff;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+
+.brand-loader-cross--vertical {
+  width: 14px;
+  height: 34px;
+}
+
+.brand-loader-cross--horizontal {
+  width: 34px;
+  height: 14px;
+}
+
+.brand-loader-pulse {
+  position: absolute;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 1px solid rgba(20, 184, 166, 0.3);
+  animation: brand-loader-pulse 1.8s ease-out infinite;
+}
+
+.brand-loader-kicker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.42rem 0.88rem;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.08);
+  color: #0f766e;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brand-loader-copy h2 {
+  margin: 0.75rem 0 0.35rem;
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.brand-loader-copy p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.98rem;
+}
+
+.brand-loader-shell.compact {
+  padding: 1rem;
+}
+
+.brand-loader-shell.compact .brand-loader-card {
+  width: min(100%, 360px);
+  padding: 1.5rem;
+}
+
+.brand-loader-shell.compact .brand-loader-visual {
+  width: 108px;
+  height: 108px;
+}
+
+body.dark-mode .brand-loader-shell.fullscreen,
+.dark-mode .brand-loader-shell.fullscreen {
+  background:
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.18), transparent 28%),
+    linear-gradient(180deg, #08111d 0%, #0f172a 46%, #111c2f 100%);
+}
+
+body.dark-mode .brand-loader-card,
+.dark-mode .brand-loader-card {
+  background: rgba(15, 23, 42, 0.78);
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+body.dark-mode .brand-loader-copy h2,
+.dark-mode .brand-loader-copy h2 {
+  color: #f8fafc;
+}
+
+body.dark-mode .brand-loader-copy p,
+.dark-mode .brand-loader-copy p {
+  color: #cbd5e1;
+}
+
+body.dark-mode .brand-loader-kicker,
+.dark-mode .brand-loader-kicker {
+  background: rgba(45, 212, 191, 0.12);
+  color: #5eead4;
+}
+
+@keyframes brand-loader-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes brand-loader-rotate-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes brand-loader-pulse {
+  0% {
+    transform: scale(0.86);
+    opacity: 0.95;
+  }
+  70% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .brand-loader-card {
+    border-radius: 24px;
+    padding: 1.5rem 1.25rem;
+  }
+}
