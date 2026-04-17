@@ -1,134 +1,255 @@
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.52);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  padding: clamp(1rem, 2vw, 1.5rem);
 }
 
-.modal-content {
-  background: white;
-  width: 90%;
-  max-width: 600px;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.3s ease;
+.ordonnance-modal-card {
+  width: min(680px, 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+  border-radius: 22px;
+  padding: 1.1rem 1.2rem;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+  animation: ordonnanceSlideUp 0.25s ease;
+  max-height: min(82vh, 860px);
+  overflow-y: auto;
+  margin: auto;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes ordonnanceSlideUp {
+  from {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
-.modal-header {
+.ordonnance-modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f1f2f6;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.5rem;
+.ordonnance-kicker {
+  display: inline-flex;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(0, 150, 136, 0.12);
+  color: #00796b;
+  font-size: 0.78rem;
   font-weight: 800;
-  color: #2d3436;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ordonnance-modal-header h3 {
+  margin: 0.4rem 0 0.2rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #14342f;
+}
+
+.ordonnance-modal-header p {
+  margin: 0;
+  color: #5f6c72;
+  line-height: 1.6;
 }
 
 .close-btn {
-  background: transparent;
+  width: 42px;
+  height: 42px;
   border: none;
-  color: #b2bec3;
+  border-radius: 12px;
+  background: #eef3f2;
+  color: #526067;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.close-btn:hover {
-  color: #ff5252;
-}
-
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group label {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #636e72;
-}
-
-.form-group input, .form-group select, .form-group textarea {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #dfe6e9;
-  font-size: 1rem;
-  background: #f8f9fa;
   transition: all 0.2s ease;
 }
 
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-  background: white;
-  border-color: #009688;
+.close-btn:hover:not(:disabled) {
+  background: #e2e8e7;
+  color: #1f2f36;
+}
+
+.close-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.ordonnance-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.ordonnance-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.secondary-grid {
+  grid-template-columns: 1.2fr 0.8fr;
+}
+
+.ordonnance-field-card {
+  background: #ffffff;
+  border: 1px solid #e7eeec;
+  border-radius: 16px;
+  padding: 0.82rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.ordonnance-field-card label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #42535a;
+}
+
+.input-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid #dbe5e2;
+  border-radius: 14px;
+  padding: 0 0.9rem;
+  background: #fbfdfd;
+}
+
+.input-with-icon svg {
+  color: #4f8f84;
+  flex-shrink: 0;
+}
+
+.input-with-icon input {
+  border: none;
   outline: none;
-  box-shadow: 0 0 0 4px rgba(0, 150, 136, 0.1);
+  background: transparent;
+  width: 100%;
+  padding: 0.72rem 0;
+  font-size: 0.98rem;
+  color: #1f2937;
+}
+
+.ordonnance-field-card select {
+  width: 100%;
+  border: 1px solid #dbe5e2;
+  border-radius: 14px;
+  padding: 0.72rem 0.95rem;
+  font-size: 0.98rem;
+  background: #fbfdfd;
+  color: #1f2937;
+  outline: none;
+}
+
+.input-with-icon:focus-within,
+.ordonnance-field-card select:focus {
+  border-color: #009688;
+  box-shadow: 0 0 0 4px rgba(0, 150, 136, 0.12);
+}
+
+.ordonnance-field-card small {
+  color: #7a8b92;
+}
+
+.ordonnance-info-banner {
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(0, 150, 136, 0.12), rgba(72, 187, 120, 0.1));
+  color: #164e47;
+  padding: 0.8rem 0.95rem;
+  font-size: 0.94rem;
+  line-height: 1.6;
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 0.2rem;
+}
+
+.cancel-btn,
+.save-btn {
+  min-width: 140px;
+  padding: 0.9rem 1.2rem;
+  border-radius: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .cancel-btn {
-  padding: 10px 24px;
-  border-radius: 8px;
-  border: 1px solid #dfe6e9;
-  background: white;
-  color: #636e72;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background: #edf2f1;
+  color: #47565c;
 }
 
-.cancel-btn:hover {
-  background: #f1f2f6;
+.cancel-btn:hover:not(:disabled) {
+  background: #e1e8e6;
 }
 
 .save-btn {
-  padding: 10px 24px;
-  border-radius: 8px;
-  border: none;
-  background: #009688;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #009688, #00796b);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(0, 150, 136, 0.22);
 }
 
-.save-btn:hover {
-  background: #00796b;
-  transform: translateY(-2px);
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.cancel-btn:disabled,
+.save-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .ordonnance-modal-card {
+    padding: 1.25rem;
+    border-radius: 20px;
+  }
+
+  .ordonnance-form-grid,
+  .secondary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .cancel-btn,
+  .save-btn {
+    width: 100%;
+  }
 }
