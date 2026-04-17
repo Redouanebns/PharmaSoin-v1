@@ -1,82 +1,201 @@
-import React from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-
-// Dashboard Components
-import Sidebar from './sidebar/Sidebar';
-import Statistic from './statistic/Statistic';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import CategorieList from './categorie/CategorieList';
-
-// Feature Components
 import MedicineList from './medicaments/MedicineList';
-import Ordonnances from './pharmacy/Ordonnances';
-import FournisseurList from './suppliers/FournisseurList';
 import CommandesList from './orders/CommandesList';
-
-// Styles
+import Ordonnances from './pharmacy/Ordonnances';
+import ProfileSettings from './profile/ProfileSettings';
+import Sidebar from './sidebar/Sidebar';
+import SiteSettings from './settings/SiteSettings';
+import Statistic from './statistic/Statistic';
+import StockAlertes from './stock/StockAlertes';
+import StockEntrees from './stock/StockEntrees';
+import StockExpiredProducts from './stock/StockExpiredProducts';
+import StockSorties from './stock/StockSorties';
+import FournisseurList from './suppliers/FournisseurList';
+import TransactionsList from './transactions/TransactionsList';
+import VentesList from './ventes/VentesList';
+import BrandLoader from '../../components/BrandLoader';
+import { getInitials, getRoleLabel } from '../../utils/auth';
 import './Dashboard.css';
 
-const Dashboard = ({ isDarkMode, toggleDarkMode, searchQuery, setSearchQuery }) => {
+const Dashboard = ({ currentUser, isDarkMode, onLogout, searchQuery, setSearchQuery, toggleDarkMode }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const dropdownRef = useRef(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [entryLoaderVisible, setEntryLoaderVisible] = useState(true);
 
-  const handleDeconnexion = () => {
-    localStorage.removeItem('token');
-    navigate('/');
+  const isAdmin = currentUser?.role === 'admin';
+  const dashboardTitle = isAdmin ? 'Tableau de bord administration' : 'Espace pharmacien';
+  const dashboardSubtitle = isAdmin
+    ? 'Pilotage complet, ventes comptoir/en ligne et supervision globale.'
+    : 'Suivi opérationnel, validation des commandes web et interface pharmacien dédiée.';
+
+  const routeConfigs = useMemo(() => {
+    const commonRoutes = [
+      { path: 'stats', element: <Statistic currentUser={currentUser} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'medicines', element: <MedicineList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'ordonnances', element: <Ordonnances isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'ventes', element: <VentesList saleType="counter" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'ventes-en-ligne', element: <VentesList saleType="online" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'stock/entrees', element: <StockEntrees isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'stock/sorties', element: <StockSorties isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'stock/alertes', element: <StockAlertes isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'stock/perimes', element: <StockExpiredProducts isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      {
+        path: 'profile',
+        element: (
+          <ProfileSettings
+            currentUser={currentUser}
+            isDarkMode={isDarkMode}
+            onProfileUpdated={() => window.location.reload()}
+            toggleDarkMode={toggleDarkMode}
+          />
+        ),
+      },
+    ];
+
+    if (!isAdmin) {
+      return commonRoutes;
+    }
+
+    return [
+      ...commonRoutes,
+      { path: 'categories', element: <CategorieList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'suppliers', element: <FournisseurList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'commandes', element: <CommandesList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'transactions', element: <TransactionsList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'settings', element: <SiteSettings currentUser={currentUser} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+    ];
+  }, [currentUser, isAdmin, isDarkMode, toggleDarkMode]);
+
+  const defaultRoute = routeConfigs[0]?.path || 'stats';
+
+  useEffect(() => {
+    setSidebarOpen(false);
+    setProfileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setEntryLoaderVisible(false), 900);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleDocumentClick = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    return () => document.removeEventListener('mousedown', handleDocumentClick);
+  }, []);
+
+  const handleLogout = async () => {
+    await onLogout?.();
+    navigate('/authentification', { replace: true });
   };
 
+  if (entryLoaderVisible) {
+    return (
+      <BrandLoader
+        title={dashboardTitle}
+        message="Préparation de votre tableau de bord et chargement des modules métier..."
+        kicker="Dashboard"
+      />
+    );
+  }
+
   return (
-    <div className={`dashboard-full-layout ${isDarkMode ? 'dark-mode' : ''}`}>
-      {/* Sidebar principal */}
+    <div className={`dashboard-full-layout role-${currentUser?.role || 'admin'} ${isDarkMode ? 'dark-mode' : ''}`}>
       <Sidebar
+        currentUser={currentUser}
         isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-        onDeconnexion={handleDeconnexion}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onDeconnexion={handleLogout}
       />
 
-      {/* Contenu principal */}
       <div className="dashboard-main">
-        {/* Header du dashboard */}
-        <header className="dashboard-topbar">
-          <div className="topbar-left">
-            <h4 className="topbar-title">
-              <i className="fas fa-chart-line me-2 text-success"></i>
-              Tableau de Bord
-            </h4>
-          </div>
-          <div className="topbar-right">
-            {searchQuery !== undefined && (
-              <div className="topbar-search">
-                <i className="fas fa-search"></i>
-                <input
-                  type="text"
-                  placeholder="Rechercher..."
-                  value={searchQuery || ''}
-                  onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
-                />
+        <div className="dashboard-header-shell" ref={dropdownRef}>
+          <header className="dashboard-topbar glass-card">
+            <div className="topbar-left">
+              <button type="button" className="topbar-menu-btn" onClick={() => setSidebarOpen(true)}>
+                <i className="fas fa-bars"></i>
+              </button>
+              <div>
+                <h4 className="topbar-title">{dashboardTitle}</h4>
+                <p className="topbar-subtitle">{dashboardSubtitle}</p>
               </div>
-            )}
-            <button className="topbar-theme-btn" onClick={toggleDarkMode} title="Thème">
-              {isDarkMode ? <i className="fas fa-sun"></i> : <i className="fas fa-moon"></i>}
-            </button>
-            <div className="topbar-user">
-              <div className="user-avatar">
-                <i className="fas fa-user"></i>
-              </div>
-              <span>Admin</span>
             </div>
-          </div>
-        </header>
 
-        {/* Routes du dashboard */}
+            <div className="topbar-right">
+              {searchQuery !== undefined && (
+                <div className="topbar-search">
+                  <i className="fas fa-search"></i>
+                  <input
+                    type="text"
+                    placeholder="Rechercher dans le dashboard..."
+                    value={searchQuery || ''}
+                    onChange={(event) => setSearchQuery?.(event.target.value)}
+                  />
+                </div>
+              )}
+
+              <button className="topbar-theme-btn" onClick={toggleDarkMode} title="Basculer le thème">
+                {isDarkMode ? <i className="fas fa-sun"></i> : <i className="fas fa-moon"></i>}
+              </button>
+
+              <div className="topbar-user-dropdown">
+                <button
+                  type="button"
+                  className="topbar-user"
+                  onClick={() => setProfileMenuOpen((previous) => !previous)}
+                  aria-expanded={profileMenuOpen}
+                >
+                  <div className="user-avatar user-avatar--initials">{getInitials(currentUser?.name)}</div>
+                  <div className="user-meta">
+                    <strong>{currentUser?.name || 'Utilisateur'}</strong>
+                    <span>{getRoleLabel(currentUser?.role)}</span>
+                  </div>
+                  <i className={`fas fa-chevron-${profileMenuOpen ? 'up' : 'down'} topbar-user-chevron`}></i>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {profileMenuOpen && (
+            <div className="dashboard-header-dropdown-row">
+              <div className="topbar-dropdown-menu topbar-dropdown-menu--docked">
+                <button type="button" onClick={() => navigate('/dashboard/profile')}>
+                  <i className="fas fa-id-card"></i>
+                  Profil
+                </button>
+                {isAdmin && (
+                  <button type="button" onClick={() => navigate('/dashboard/settings')}>
+                    <i className="fas fa-sliders-h"></i>
+                    Paramètres
+                  </button>
+                )}
+                <button type="button" className="danger" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  Déconnexion
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <main className="dashboard-content-area">
           <Routes>
-            <Route path="stats" element={<Statistic isDarkMode={isDarkMode} />} />
-            <Route path="medicines" element={<MedicineList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-            <Route path="categories" element={<CategorieList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-            <Route path="ordonnances" element={<Ordonnances isDarkMode={isDarkMode} />} />
-            <Route path="suppliers" element={<FournisseurList isDarkMode={isDarkMode} />} />
-            <Route path="commandes" element={<CommandesList isDarkMode={isDarkMode} />} />
-            <Route index element={<Navigate to="stats" replace />} />
-            <Route path="*" element={<Navigate to="stats" replace />} />
+            {routeConfigs.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
+            <Route index element={<Navigate to={defaultRoute} replace />} />
+            <Route path="*" element={<Navigate to={defaultRoute} replace />} />
           </Routes>
         </main>
       </div>
