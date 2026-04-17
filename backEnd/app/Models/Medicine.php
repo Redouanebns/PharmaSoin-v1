@@ -12,6 +12,7 @@ class Medicine extends Model
     protected $fillable = [
         'nom',
         'dci',
+        'molecule',
         'code',
         'category_id',
         'dose',
@@ -20,6 +21,14 @@ class Medicine extends Model
         'exp',
         'description',
         'image_url',
+        'ordonnance',
+        'seuil_alerte',
+    ];
+
+    protected $casts = [
+        'ordonnance' => 'boolean',
+        'prix' => 'decimal:2',
+        'exp' => 'date:Y-m-d',
     ];
 
     public function category()
@@ -35,5 +44,15 @@ class Medicine extends Model
     public function translation($locale = null)
     {
         return $this->hasOne(MedicineTranslation::class)->where('locale', $locale ?: app()->getLocale());
+    }
+
+    public function venteItems()
+    {
+        return $this->hasMany(VenteItem::class);
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
     }
 }
