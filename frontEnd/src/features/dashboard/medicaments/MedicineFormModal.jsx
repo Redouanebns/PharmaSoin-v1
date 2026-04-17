@@ -1,54 +1,64 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import api from '../../../services/api';
-import './MedicineFormModal.css';
+import React, { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import api from "../../../services/api";
+import "./MedicineFormModal.css";
 
 const localeTabs = [
-  { code: 'fr', label: 'FR' },
-  { code: 'en', label: 'EN' },
-  { code: 'ar', label: 'AR' },
+  { code: "fr", label: "FR" },
+  { code: "en", label: "EN" },
+  { code: "ar", label: "AR" },
 ];
 
-const emptyTranslation = () => ({ nom: '', dci: '', dose: '', description: '' });
+const moleculeSuggestions = [
+  "Paracétamol",
+  "Ibuprofène",
+  "Amoxicilline",
+  "Azithromycine",
+  "Acide ascorbique",
+  "Trolamine",
+  "Sucralfate",
+];
 
+const parseMolecules = (value = "") =>
+  String(value)
+    .split(/[\n,;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .filter((item, index, array) => {
+      const lowered = item.toLocaleLowerCase();
+      return array.findIndex((entry) => entry.toLocaleLowerCase() === lowered) === index;
+    });
+
+const normalizeMoleculeInput = (value = "") => parseMolecules(value).join(", ");
+
+const emptyTranslation = () => ({
+  nom: "",
+  dci: "",
+  dose: "",
+  description: "",
+});
 
 const mapTranslations = (translations, baseData = {}) => {
-
-  const data = baseData || {}; 
-
   const mapped = {
     fr: {
       ...emptyTranslation(),
-      nom: data.nom || '',
-      dci: data.dci || '',
-      dose: data.dose || '',
-      description: data.description || '',
+      nom: baseData?.nom || "",
+      dci: baseData?.dci || "",
+      dose: baseData?.dose || "",
+      description: baseData?.description || "",
     },
     en: emptyTranslation(),
     ar: emptyTranslation(),
   };
 
-  // ... rest of your code
-
   if (Array.isArray(translations)) {
     translations.forEach((translation) => {
-      if (translation?.locale && mapped[translation.locale]) {
+      if (translation && translation.locale && mapped[translation.locale]) {
         mapped[translation.locale] = {
-          nom: translation.nom || '',
-          dci: translation.dci || '',
-          dose: translation.dose || '',
-          description: translation.description || '',
-        };
-      }
-    });
-  } else if (translations && typeof translations === 'object') {
-    localeTabs.forEach(({ code }) => {
-      if (translations[code]) {
-        mapped[code] = {
-          nom: translations[code].nom || '',
-          dci: translations[code].dci || '',
-          dose: translations[code].dose || '',
-          description: translations[code].description || '',
+          nom: translation.nom || "",
+          dci: translation.dci || "",
+          dose: translation.dose || "",
+          description: translation.description || "",
         };
       }
     });
@@ -57,32 +67,39 @@ const mapTranslations = (translations, baseData = {}) => {
   return mapped;
 };
 
-const getInitialState = (initialData) => ({
-  nom: initialData?.nom || '',
-  dci: initialData?.dci || '',
-  code: initialData?.code || '',
-  category_id: initialData?.category_id || '',
-  dose: initialData?.dose || '',
-  stock: initialData?.stock || '',
-  prix: initialData?.prix || '',
-  exp: initialData?.exp || '',
-  description: initialData?.description || '',
-  image_url: initialData?.image_url || '',
-  translations: mapTranslations(initialData?.translations, initialData),
-});
+const getInitialState = (initialData) => {
+  const data = initialData || {};
+
+  return {
+    nom: data.nom || "",
+    dci: data.dci || "",
+    molecule: normalizeMoleculeInput(data.molecule || ""),
+    code: data.code || "",
+    category_id: data.category_id || "",
+    dose: data.dose || "",
+    prix: data.prix ?? 0,
+    exp: data.exp || "",
+    description: data.description || "",
+    image_url: data.image_url || "",
+    ordonnance: data.ordonnance ?? false,
+    seuil_alerte: data.seuil_alerte ?? 10,
+    translations: mapTranslations(data.translations, data),
+  };
+};
 
 const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
   const [categories, setCategories] = useState([]);
-  const [activeLocale, setActiveLocale] = useState('fr');
+  const [activeLocale, setActiveLocale] = useState("fr");
   const [formData, setFormData] = useState(getInitialState(initialData));
+  const [moleculeDraft, setMoleculeDraft] = useState("");
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await api.get('/categories');
+        const response = await api.get("/categories");
         setCategories(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
-        console.error('Erreur chargement catégories:', error);
+        console.error("Erreur chargement catégories:", error);
       }
     };
 
@@ -93,62 +110,159 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
 
   useEffect(() => {
     setFormData(getInitialState(initialData));
-    setActiveLocale('fr');
+    setActiveLocale("fr");
+    setMoleculeDraft("");
   }, [initialData, isOpen]);
 
-  const activeTranslation = useMemo(() => formData.translations[activeLocale] || emptyTranslation(), [activeLocale, formData.translations]);
+  const activeTranslation = useMemo(
+    () => formData.translations[activeLocale] || emptyTranslation(),
+    [activeLocale, formData.translations],
+  );
+
+  const selectedMolecules = useMemo(
+    () => parseMolecules(formData.molecule),
+    [formData.molecule],
+  );
 
   const handleBaseChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
+    const { name, value, type, checked } = event.target;
+    const newValue = type === "checkbox" ? checked : value;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: newValue,
       translations:
-        name === 'nom' || name === 'dci' || name === 'dose' || name === 'description'
+        name === "nom" ||
+        name === "dci" ||
+        name === "dose" ||
+        name === "description"
           ? {
-              ...prev.translations,
+              ...previous.translations,
               fr: {
-                ...prev.translations.fr,
-                [name]: value,
+                ...previous.translations.fr,
+                [name]: newValue,
               },
             }
-          : prev.translations,
+          : previous.translations,
     }));
   };
 
   const handleTranslationChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      ...(activeLocale === 'fr' ? { [name]: value } : {}),
+
+    setFormData((previous) => ({
+      ...previous,
+      ...(activeLocale === "fr" ? { [name]: value } : {}),
       translations: {
-        ...prev.translations,
+        ...previous.translations,
         [activeLocale]: {
-          ...prev.translations[activeLocale],
+          ...previous.translations[activeLocale],
           [name]: value,
         },
       },
     }));
   };
 
+  const mergeMolecules = (incomingValue) => {
+    const merged = normalizeMoleculeInput(
+      [formData.molecule, incomingValue].filter(Boolean).join(", "),
+    );
+
+    setFormData((previous) => ({
+      ...previous,
+      molecule: merged,
+    }));
+  };
+
+  const commitMoleculeDraft = (rawValue = moleculeDraft) => {
+    const normalizedDraft = normalizeMoleculeInput(rawValue);
+
+    if (!normalizedDraft) {
+      setMoleculeDraft("");
+      return;
+    }
+
+    mergeMolecules(normalizedDraft);
+    setMoleculeDraft("");
+  };
+
+  const handleMoleculeKeyDown = (event) => {
+    if (["Enter", ",", ";", "Tab"].includes(event.key) && moleculeDraft.trim()) {
+      event.preventDefault();
+      commitMoleculeDraft();
+      return;
+    }
+
+    if (event.key === "Backspace" && !moleculeDraft.trim() && selectedMolecules.length) {
+      event.preventDefault();
+      const nextItems = selectedMolecules.slice(0, -1);
+      setFormData((previous) => ({
+        ...previous,
+        molecule: nextItems.join(", "),
+      }));
+    }
+  };
+
+  const handleRemoveMolecule = (moleculeToRemove) => {
+    const nextItems = selectedMolecules.filter(
+      (item) => item.toLocaleLowerCase() !== moleculeToRemove.toLocaleLowerCase(),
+    );
+
+    setFormData((previous) => ({
+      ...previous,
+      molecule: nextItems.join(", "),
+    }));
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    commitMoleculeDraft(suggestion);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    await onSave({ ...formData, translations: formData.translations });
+
+    const normalizedMolecules = normalizeMoleculeInput(
+      [formData.molecule, moleculeDraft].filter(Boolean).join(", "),
+    );
+
+    await onSave({
+      ...formData,
+      molecule: normalizedMolecules,
+      prix: Number(formData.prix || 0),
+      seuil_alerte: Number(formData.seuil_alerte || 0),
+      ordonnance: Boolean(formData.ordonnance),
+    });
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: 0.96, y: 20 }}
             className="modal-content-custom modal-content-translation"
           >
             <div className="modal-header-custom">
-              <h3>{initialData ? 'Modifier le Médicament' : 'Nouveau Médicament'}</h3>
-              <button onClick={onClose} className="btn-close" aria-label="Close"></button>
+              <div>
+                <h3>
+                  {initialData
+                    ? "Modifier le Médicament"
+                    : "Nouveau Médicament"}
+                </h3>
+                <p>
+                  Complétez la catégorie, les molécules et la date
+                  d&apos;expiration. Le stock sera ensuite suivi par les
+                  commandes et mouvements.
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="btn-close"
+                aria-label="Fermer"
+                type="button"
+              ></button>
             </div>
 
             <form onSubmit={handleSubmit} className="modal-body-custom">
@@ -186,6 +300,79 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
               <div className="row">
                 <div className="col-md-6">
                   <div className="form-group-custom">
+                    <label>Molécule(s) liée(s)</label>
+                    <div className="molecule-input-shell">
+                      {selectedMolecules.length > 0 ? (
+                        <div className="selected-molecules">
+                          {selectedMolecules.map((item) => (
+                            <button
+                              type="button"
+                              key={item}
+                              className="selected-molecule-chip"
+                              onClick={() => handleRemoveMolecule(item)}
+                              title={`Retirer ${item}`}
+                            >
+                              <span>{item}</span>
+                              <i className="fas fa-times"></i>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="molecule-empty-state">
+                          Aucune molécule ajoutée pour le moment.
+                        </div>
+                      )}
+
+                      <div className="molecule-entry-row">
+                        <input
+                          type="text"
+                          value={moleculeDraft}
+                          onChange={(event) => setMoleculeDraft(event.target.value)}
+                          onKeyDown={handleMoleculeKeyDown}
+                          onBlur={() => commitMoleculeDraft()}
+                          placeholder={
+                            selectedMolecules.length
+                              ? "Ajouter une autre molécule puis appuyer sur Entrée"
+                              : "Saisir une molécule, puis Entrée"
+                          }
+                          className="form-input-custom molecule-inline-input"
+                        />
+                        <button
+                          type="button"
+                          className="molecule-add-btn"
+                          onClick={() => commitMoleculeDraft()}
+                        >
+                          Ajouter
+                        </button>
+                      </div>
+
+                      <input type="hidden" name="molecule" value={formData.molecule} />
+                    </div>
+
+                    <div className="molecule-suggestions-list">
+                      {moleculeSuggestions.map((item) => {
+                        const isActive = selectedMolecules.includes(item);
+                        return (
+                          <button
+                            type="button"
+                            key={item}
+                            className={`molecule-suggestion-chip ${isActive ? "active" : ""}`}
+                            onClick={() => handleSuggestionClick(item)}
+                          >
+                            {item}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <small className="field-helper-text">
+                      Un produit peut contenir plusieurs molécules. Utilisez
+                      Entrée, virgule ou le bouton « Ajouter » pour les empiler,
+                      puis cliquez sur une pastille pour la retirer.
+                    </small>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group-custom">
                     <label>Code barres</label>
                     <input
                       type="text"
@@ -198,6 +385,9 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="row">
                 <div className="col-md-6">
                   <div className="form-group-custom">
                     <label>Catégorie</label>
@@ -217,74 +407,110 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
                     </select>
                   </div>
                 </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-4">
+                <div className="col-md-6">
                   <div className="form-group-custom">
-                    <label>Dosage/Forme</label>
+                    <label>Dosage / Forme</label>
                     <input
                       type="text"
                       name="dose"
                       value={formData.dose}
                       onChange={handleBaseChange}
-                      placeholder="Ex: 500mg Gélule"
+                      placeholder="Ex: 500mg comprimé"
                       className="form-input-custom"
                     />
                   </div>
                 </div>
-                <div className="col-md-4">
-                  <div className="form-group-custom">
-                    <label>Stock initial</label>
-                    <input
-                      type="number"
-                      name="stock"
-                      value={formData.stock}
-                      onChange={handleBaseChange}
-                      placeholder="0"
-                      className="form-input-custom"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="col-md-4">
+              </div>
+
+              <div className="row">
+                <div className="col-md-6">
                   <div className="form-group-custom">
                     <label>Prix (MAD)</label>
                     <input
                       type="number"
-                      step="0.01"
                       name="prix"
+                      min="0"
+                      step="0.01"
                       value={formData.prix}
                       onChange={handleBaseChange}
-                      placeholder="0.00"
                       className="form-input-custom"
                       required
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group-custom">
+                    <label>Seuil d'alerte</label>
+                    <input
+                      type="number"
+                      name="seuil_alerte"
+                      min="0"
+                      value={formData.seuil_alerte}
+                      onChange={handleBaseChange}
+                      className="form-input-custom"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="col-md-6">
+                  <div className="form-group-custom">
+                    <label>Date d'expiration</label>
+                    <input
+                      type="date"
+                      name="exp"
+                      value={formData.exp}
+                      onChange={handleBaseChange}
+                      className="form-input-custom"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group-custom">
+                    <label>URL de l'image</label>
+                    <input
+                      type="text"
+                      name="image_url"
+                      value={formData.image_url}
+                      onChange={handleBaseChange}
+                      placeholder="https://..."
+                      className="form-input-custom"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="form-group-custom">
-                <label>Date d'expiration</label>
-                <input
-                  type="date"
-                  name="exp"
-                  value={formData.exp}
-                  onChange={handleBaseChange}
-                  className="form-input-custom"
-                  required
-                />
+                <label>Ordonnance requise</label>
+                <div className="ordonnance-toggle">
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      name="ordonnance"
+                      checked={formData.ordonnance}
+                      onChange={handleBaseChange}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
+                  <span className="toggle-label">
+                    {formData.ordonnance
+                      ? "✅ Ce médicament nécessite une ordonnance"
+                      : "❌ Médicament sans ordonnance"}
+                  </span>
+                </div>
               </div>
 
               <div className="form-group-custom">
-                <label>URL de l'image</label>
-                <input
-                  type="text"
-                  name="image_url"
-                  value={formData.image_url}
+                <label>Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
                   onChange={handleBaseChange}
-                  placeholder="https://..."
+                  rows="4"
                   className="form-input-custom"
+                  placeholder="Description, indication ou notes du médicament"
                 />
               </div>
 
@@ -294,7 +520,7 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
                     <button
                       key={locale.code}
                       type="button"
-                      className={`translation-tab ${activeLocale === locale.code ? 'active' : ''}`}
+                      className={`translation-tab ${activeLocale === locale.code ? "active" : ""}`}
                       onClick={() => setActiveLocale(locale.code)}
                     >
                       {locale.label}
@@ -311,7 +537,6 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
                         name="nom"
                         value={activeTranslation.nom}
                         onChange={handleTranslationChange}
-                        placeholder={`Nom ${activeLocale.toUpperCase()}`}
                         className="form-input-custom"
                       />
                     </div>
@@ -324,7 +549,6 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
                         name="dci"
                         value={activeTranslation.dci}
                         onChange={handleTranslationChange}
-                        placeholder={`DCI ${activeLocale.toUpperCase()}`}
                         className="form-input-custom"
                       />
                     </div>
@@ -332,13 +556,12 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
                 </div>
 
                 <div className="form-group-custom">
-                  <label>Dosage/Forme ({activeLocale.toUpperCase()})</label>
+                  <label>Dosage ({activeLocale.toUpperCase()})</label>
                   <input
                     type="text"
                     name="dose"
                     value={activeTranslation.dose}
                     onChange={handleTranslationChange}
-                    placeholder={`Dosage ${activeLocale.toUpperCase()}`}
                     className="form-input-custom"
                   />
                 </div>
@@ -349,20 +572,18 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
                     name="description"
                     value={activeTranslation.description}
                     onChange={handleTranslationChange}
-                    placeholder={`Description ${activeLocale.toUpperCase()}`}
                     rows="3"
                     className="form-input-custom"
-                    style={{ resize: 'none' }}
-                  ></textarea>
+                  />
                 </div>
               </div>
 
               <div className="modal-footer-custom">
-                <button type="button" onClick={onClose} className="btn-cancel">
+                <button type="button" className="btn-cancel" onClick={onClose}>
                   Annuler
                 </button>
                 <button type="submit" className="btn-save">
-                  Enregistrer
+                  {initialData ? "Mettre à jour" : "Enregistrer"}
                 </button>
               </div>
             </form>
