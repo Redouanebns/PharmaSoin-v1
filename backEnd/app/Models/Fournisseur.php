@@ -16,10 +16,25 @@ class Fournisseur extends Model
         'produits',
         'conditions',
         'livraisons',
-        'statut'
+        'statut',
     ];
 
     protected $casts = [
         'produits' => 'array',
     ];
+
+    public function commandes()
+    {
+        return $this->hasMany(Commande::class);
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }
