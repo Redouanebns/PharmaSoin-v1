@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../../services/api';
 import FournisseurFormModel from './FournisseurFormModel';
+import PageHero from '../shared/PageHero';
 import './FournisseurList.css';
 
-const FournisseurList = () => {
+const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -71,7 +72,15 @@ const FournisseurList = () => {
   if (error) return <div className="p-5 text-center text-danger">{error}</div>;
 
   return (
-    <div className="supplier-container">
+    <div className={`supplier-container ${isDarkMode ? 'dark-mode' : ''}`}>
+      <PageHero
+        title="Gestion des Fournisseurs"
+        description="Accédez rapidement aux fiches fournisseurs, aux coordonnées de contact et aux produits stratégiques de réapprovisionnement."
+        icon="fas fa-truck-loading"
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
+      />
+
       <div className="supplier-card">
         <div className="supplier-header">
           <div className="header-title">
