@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { CreditCard, ShieldCheck, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import api from '../../services/api';
 import './Paiement.css';
 
 const Payment = () => {
@@ -22,17 +23,33 @@ const Payment = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsProcessing(true);
     
-    // Simuler un délai de paiement
-    setTimeout(() => {
+    try {
+      const produits = cartItems.map(item => ({
+        medicine_id: item.id,
+        qte: item.quantity,
+        prix_unitaire: item.prix
+      }));
+
+      const payload = {
+        produits,
+        payment_reference: formData.cardNumber.slice(-4),
+        paiement: 'Carte',
+      };
+
+      await api.post('/client/orders/checkout', payload);
+      
       setIsProcessing(false);
       setIsSuccess(true);
-      // Vider le panier après succès
       clearCart();
-    }, 2500);
+    } catch (error) {
+      console.error('Payment error:', error);
+      setIsProcessing(false);
+      alert(error.response?.data?.message || 'Erreur lors de la validation de la commande. Veuillez vérifier que vous êtes connecté en tant que client.');
+    }
   };
 
   if (cartItems.length === 0 && !isSuccess) {
