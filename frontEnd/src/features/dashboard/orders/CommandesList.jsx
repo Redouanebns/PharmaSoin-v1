@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../../services/api';
 import CommandeFormModel from './CommandeFormModel';
-import PageHero from '../shared/PageHero';
 import './CommandesList.css';
 
 const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
@@ -88,13 +87,6 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`commandes-container ${isDarkMode ? 'dark-mode' : ''}`}>
-      <PageHero
-        title="Gestion des Commandes"
-        description="Suivez les commandes fournisseurs, les montants engagés et le taux de livraison dans un seul écran."
-        icon="fas fa-clipboard-list"
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-      />
 
       <div className="commandes-header">
         <div className="header-left">

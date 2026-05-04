@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../../services/api';
-import PageHero from '../shared/PageHero';
 import './Stock.css';
 
 const EXPIRY_WARNING_DAYS = 45;
@@ -104,13 +103,6 @@ const StockExpiredProducts = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`stock-page ${isDarkMode ? 'dark-theme' : ''}`}>
-      <PageHero
-        title="Produits périmés"
-        description="Repérez rapidement les médicaments expirés ou proches de péremption pour les retirer du circuit de vente et prioriser leur traitement."
-        icon="fas fa-calendar-times"
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-      />
 
       <div className="stock-header">
         <div className="stock-header-icon alerte-icon">

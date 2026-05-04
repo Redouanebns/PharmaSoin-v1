@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../../services/api';
-import PageHero from '../shared/PageHero';
 import './Stock.css';
 
 const typeConfig = {
@@ -41,13 +40,6 @@ const StockAlertes = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`stock-page ${isDarkMode ? 'dark-theme' : ''}`}>
-      <PageHero
-        title="Alertes de stock"
-        description="Identifiez d'un coup d'œil les ruptures, stocks critiques, péremptions proches et produits déjà expirés."
-        icon="fas fa-bell"
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-      />
 
       <div className="stock-header">
         <div className="stock-header-icon alerte-icon">

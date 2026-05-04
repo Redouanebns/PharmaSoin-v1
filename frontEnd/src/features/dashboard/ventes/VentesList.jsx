@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../../services/api';
 import VenteFormModal from './VenteFormModal';
-import PageHero from '../shared/PageHero';
+import BarcodeScanner from './BarcodeScanner';
 import './VentesList.css';
 
 const STATUS_CLASS = {
@@ -335,13 +335,6 @@ const VentesList = ({ saleType = 'counter', isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`ventes-container ${isDarkMode ? 'dark-mode' : ''}`}>
-      <PageHero
-        title={pageTitle}
-        description={pageDesc}
-        icon={pageIcon}
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-      />
 
       <div className="ventes-header">
         <div className="ventes-header-left">

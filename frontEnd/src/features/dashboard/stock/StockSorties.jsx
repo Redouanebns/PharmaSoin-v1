@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../../services/api';
 import StockMovementFormModal from './StockMovementFormModal';
-import PageHero from '../shared/PageHero';
 import './Stock.css';
 
 const motifColors = {
@@ -62,13 +61,6 @@ const StockSorties = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`stock-page ${isDarkMode ? 'dark-theme' : ''}`}>
-      <PageHero
-        title="Sorties de stock"
-        description="Consultez les ventes, retours et retraits de lots pour comprendre l'écoulement réel du stock pharmacie."
-        icon="fas fa-arrow-circle-up"
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-      />
 
       <div className="stock-header">
         <div className="stock-header-icon sortie-icon">

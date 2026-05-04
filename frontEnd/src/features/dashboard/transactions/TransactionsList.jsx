@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowDownCircle, ArrowUpCircle, Edit, Filter, Plus, ReceiptText, Search, Trash2, Wallet } from 'lucide-react';
 import api from '../../../services/api';
 import TransactionFormModal from './TransactionFormModal';
-import PageHero from '../shared/PageHero';
 import './TransactionsList.css';
 
 const badgeClass = (statut) => {
@@ -125,13 +124,6 @@ const TransactionsList = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`transactions-page ${isDarkMode ? 'dark-mode' : ''}`}>
-      <PageHero
-        title="Transactions financières"
-        description="Pilotez les encaissements, décaissements et écritures manuelles avec une vue claire sur le solde confirmé."
-        icon="fas fa-wallet"
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-      />
 
       <div className="transactions-header">
         <div>

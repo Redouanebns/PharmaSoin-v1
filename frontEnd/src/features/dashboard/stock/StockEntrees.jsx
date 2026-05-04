@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../../services/api';
 import StockMovementFormModal from './StockMovementFormModal';
-import PageHero from '../shared/PageHero';
 import './Stock.css';
 
 const StockEntrees = ({ isDarkMode, toggleDarkMode }) => {
@@ -55,13 +54,6 @@ const StockEntrees = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`stock-page ${isDarkMode ? 'dark-theme' : ''}`}>
-      <PageHero
-        title="Entrées de stock"
-        description="Enregistrez les réceptions fournisseurs, les lots et les dates d'expiration pour garder un stock fiable."
-        icon="fas fa-arrow-circle-down"
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-      />
 
       <div className="stock-header">
         <div className="stock-header-icon entree-icon">
