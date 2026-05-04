@@ -99,14 +99,31 @@
   border-radius: 12px;
   overflow: hidden;
   background: #000;
-  aspect-ratio: 4 / 3;
+  min-height: 240px;
 }
 
+/* Conteneur html5-qrcode — remplace l'ancien <video> */
 .barcode-video {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
   display: block;
+}
+/* La vidéo générée par html5-qrcode */
+.barcode-video video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block;
+  border-radius: 0;
+}
+/* Masquer le cadre natif de html5-qrcode (on a notre propre crosshair) */
+#pharmasoin-barcode-scanner > div[style] {
+  border: none !important;
+  box-shadow: none !important;
+}
+/* Masquer les boutons natifs de html5-qrcode */
+#pharmasoin-barcode-scanner button,
+#pharmasoin-barcode-scanner select {
+  display: none !important;
 }
 
 

@@ -44,6 +44,7 @@ Route::middleware([AuthenticateApiToken::class])->group(function () {
 
         Route::get('/medicaments', [MedicineController::class, 'index']);
         Route::post('/medicaments', [MedicineController::class, 'store']);
+        Route::post('/medicaments/import', [MedicineController::class, 'import']);
         Route::get('/medicaments/scan/{barcode}', [MedicineController::class, 'scanByBarcode']);
         Route::get('/medicaments/{id}', [MedicineController::class, 'show']);
         Route::put('/medicaments/{id}', [MedicineController::class, 'update']);

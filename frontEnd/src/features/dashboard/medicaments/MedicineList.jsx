@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -96,6 +96,8 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
   const [statusFilter, setStatusFilter] = useState('');
   const { currentLanguage } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
+  const fileInputRef = useRef(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   const fetchMedicines = useCallback(async () => {
     setLoading(true);
@@ -204,6 +206,34 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
     }
   };
 
+  const handleImportExcel = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setIsImporting(true);
+      await api.post('/medicaments/import', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      alert('Médicaments importés avec succès !');
+      await fetchMedicines();
+    } catch (importError) {
+      console.error(importError);
+      alert(`Erreur lors de l'importation : ${importError.response?.data?.message || importError.message}`);
+    } finally {
+      setIsImporting(false);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className={`medicine-list-container ${isDarkMode ? 'dark-theme' : ''}`}>
       <div className="header-card">
@@ -248,10 +278,27 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
               )}
             </div>
           </div>
-          <button onClick={handleAddMedicine} className="btn-create d-flex align-items-center gap-2 shadow-sm">
-            <i className="fas fa-plus-circle"></i>
-            <span>Nouveau Médicament</span>
-          </button>
+          <div className="d-flex gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              accept=".xlsx, .xls, .csv"
+              onChange={handleImportExcel}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm"
+              disabled={isImporting}
+            >
+              {isImporting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-file-excel"></i>}
+              <span>Importer</span>
+            </button>
+            <button onClick={handleAddMedicine} className="btn-create d-flex align-items-center gap-2 shadow-sm">
+              <i className="fas fa-plus-circle"></i>
+              <span>Nouveau Médicament</span>
+            </button>
+          </div>
         </div>
 
         <div className="filters-section">

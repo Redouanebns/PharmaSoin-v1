@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
+use App\Imports\MedicinesImport;
+use Maatwebsite\Excel\Facades\Excel;
+
 class MedicineController extends Controller
 {
     private array $supportedLocales = ['fr', 'en', 'ar'];
@@ -23,6 +26,20 @@ class MedicineController extends Controller
             ->values();
 
         return response()->json($medicines);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+        ]);
+
+        try {
+            Excel::import(new MedicinesImport, $request->file('file'));
+            return response()->json(['message' => 'Médicaments importés avec succès.']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Erreur lors de l\'importation.', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)

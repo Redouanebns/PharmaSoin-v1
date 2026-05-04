@@ -1,11 +1,30 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import './BarcodeScanner.css';
 
+// ID unique du conteneur vidéo requis par html5-qrcode
+const SCANNER_CONTAINER_ID = 'pharmasoin-barcode-scanner';
+
+// Délai avant fermeture automatique après détection (ms)
+const AUTO_CLOSE_DELAY = 1200;
+
+// Formats de codes-barres supportés (médicaments utilisent principalement EAN-13)
+const SUPPORTED_FORMATS = [
+  Html5QrcodeSupportedFormats.EAN_13,
+  Html5QrcodeSupportedFormats.EAN_8,
+  Html5QrcodeSupportedFormats.CODE_128,
+  Html5QrcodeSupportedFormats.CODE_39,
+  Html5QrcodeSupportedFormats.UPC_A,
+  Html5QrcodeSupportedFormats.UPC_E,
+  Html5QrcodeSupportedFormats.QR_CODE,
+  Html5QrcodeSupportedFormats.DATA_MATRIX,
+];
+
 const BarcodeScanner = ({ onDetected, onClose, isOpen }) => {
-  const videoRef    = useRef(null);
-  const readerRef   = useRef(null);
-  const cooldownRef = useRef(false);
+  const autoCloseRef = useRef(null); // timer de fermeture automatique
+  const scannerRef    = useRef(null);   // instance Html5Qrcode
+  const cooldownRef   = useRef(false);
+  const mountedRef    = useRef(false);  // évite les appels sur composant démonté
 
   const [cameras, setCameras]               = useState([]);
   const [selectedCamera, setSelectedCamera] = useState('');
@@ -14,101 +33,164 @@ const BarcodeScanner = ({ onDetected, onClose, isOpen }) => {
   const [isScanning, setIsScanning]         = useState(false);
   const [loading, setLoading]               = useState(false);
 
-  const startStream = useCallback((reader, deviceId) => {
-    if (!videoRef.current) {
-      setError('Élément vidéo non prêt, réessayez.');
-      setLoading(false);
-      return;
+  // ── Arrêt propre du scanner ────────────────────────────────────────────────
+  const stopScanner = useCallback(async () => {
+    // Annuler le timer de fermeture automatique si présent
+    if (autoCloseRef.current) {
+      clearTimeout(autoCloseRef.current);
+      autoCloseRef.current = null;
     }
-    reader
-      .decodeFromVideoDevice(deviceId, videoRef.current, (result, err) => {
-        setLoading(false);
-        setIsScanning(true);
-        if (result) {
-          const code = result.getText();
-          if (!cooldownRef.current) {
-            cooldownRef.current = true;
-            setLastCode(code);
-            onDetected(code);
-            setTimeout(() => { cooldownRef.current = false; }, 2000);
-          }
+    if (scannerRef.current) {
+      try {
+        const state = scannerRef.current.getState?.();
+        // state 2 = SCANNING, state 3 = PAUSED
+        if (state === 2 || state === 3) {
+          await scannerRef.current.stop();
         }
-        if (err && !(err instanceof NotFoundException)) {
-          console.warn('ZXing:', err?.message);
-        }
-      })
-      .catch((e) => {
-        setError('Impossible de démarrer la caméra : ' + (e?.message || 'Erreur inconnue'));
-        setLoading(false);
-        setIsScanning(false);
-      });
-  }, [onDetected]);
-
-  // Ouverture / fermeture du modal
-  useEffect(() => {
-    if (!isOpen) {
-      if (readerRef.current) {
-        readerRef.current.reset();
-        readerRef.current = null;
+        scannerRef.current.clear();
+      } catch (_) {
+        // Ignore les erreurs d'arrêt
       }
+      scannerRef.current = null;
+    }
+    if (mountedRef.current) {
       setIsScanning(false);
       setLoading(false);
-      setError('');
-      setLastCode('');
-      setCameras([]);
-      setSelectedCamera('');
+    }
+  }, []);
+
+  // ── Démarrage du scanner sur un deviceId ──────────────────────────────────
+  const startScanner = useCallback(async (deviceId) => {
+    if (!mountedRef.current) return;
+    setLoading(true);
+    setError('');
+
+    // Attendre que le DOM ait rendu le conteneur
+    await new Promise((r) => setTimeout(r, 150));
+
+    if (!document.getElementById(SCANNER_CONTAINER_ID)) {
+      if (mountedRef.current) {
+        setError('Conteneur vidéo introuvable, réessayez.');
+        setLoading(false);
+      }
       return;
     }
 
+    try {
+      const html5Qrcode = new Html5Qrcode(SCANNER_CONTAINER_ID, {
+        formatsToSupport: SUPPORTED_FORMATS,
+        verbose: false,
+      });
+      scannerRef.current = html5Qrcode;
+
+      // Configuration stable (restaurée car l'accélération matérielle/HD plantait sur certains PC)
+      const config = {
+        fps: 15, // 15 fps est le sweet spot pour la stabilité CPU
+        aspectRatio: 1.777,
+        disableFlip: false,
+      };
+
+      await html5Qrcode.start(
+        deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' },
+        config,
+        // Succès
+        (decodedText) => {
+          if (!cooldownRef.current && mountedRef.current) {
+            cooldownRef.current = true;
+            setLastCode(decodedText);
+
+            // 1. Notifier le parent IMMEDIATEMENT
+            onDetected(decodedText);
+
+            // 2. Mettre en pause le scanner pour éviter de chauffer la caméra
+            try {
+              if (scannerRef.current && scannerRef.current.getState?.() === 2) {
+                scannerRef.current.pause();
+              }
+            } catch (e) {}
+
+            // 3. Fermer le modal IMMÉDIATEMENT
+            if (mountedRef.current) {
+              onClose();
+            }
+          }
+        },
+        // Erreur frame (normal, ignorée)
+        () => {}
+      );
+
+      if (mountedRef.current) {
+        setIsScanning(true);
+        setLoading(false);
+      }
+    } catch (err) {
+      if (mountedRef.current) {
+        const msg = err?.message || String(err);
+        if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('denied')) {
+          setError('Accès à la caméra refusé. Autorisez la caméra dans votre navigateur.');
+        } else {
+          setError('Impossible de démarrer la caméra : ' + msg);
+        }
+        setLoading(false);
+        setIsScanning(false);
+      }
+    }
+  }, [onDetected, onClose, stopScanner]);
+
+  // ── Cycle de vie : ouverture / fermeture du modal ─────────────────────────
+  useEffect(() => {
+    if (!isOpen) {
+      stopScanner();
+      setCameras([]);
+      setSelectedCamera('');
+      setError('');
+      setLastCode('');
+      return;
+    }
+
+    mountedRef.current  = true;
+    cooldownRef.current = false;
     setLoading(true);
     setError('');
-    cooldownRef.current = false;
 
-    const reader = new BrowserMultiFormatReader();
-    readerRef.current = reader;
-
-    reader
-      .listVideoInputDevices()
+    // Énumérer les caméras disponibles
+    Html5Qrcode.getCameras()
       .then((devices) => {
+        if (!mountedRef.current) return;
         if (!devices || devices.length === 0) {
           setError('Aucune caméra détectée sur cet appareil.');
           setLoading(false);
           return;
         }
         setCameras(devices);
+        // Préférer la caméra arrière sur mobile, sinon la première
         const back = devices.find((d) => /back|rear|environment/i.test(d.label));
-        const deviceId = back ? back.deviceId : devices[0].deviceId;
-        setSelectedCamera(deviceId);
-        startStream(reader, deviceId);
+        const chosen = back ? back.id : devices[0].id;
+        setSelectedCamera(chosen);
+        startScanner(chosen);
       })
-      .catch((e) => {
-        setError('Accès caméra refusé. Autorisez la caméra dans votre navigateur. (' + (e?.message || '') + ')');
+      .catch((err) => {
+        if (!mountedRef.current) return;
+        setError('Accès caméra refusé. Autorisez la caméra dans votre navigateur. (' + (err?.message || '') + ')');
         setLoading(false);
       });
 
     return () => {
-      if (readerRef.current) {
-        readerRef.current.reset();
-        readerRef.current = null;
-      }
-      setIsScanning(false);
+      mountedRef.current = false;
+      stopScanner();
     };
-  }, [isOpen, startStream]);
+  }, [isOpen, startScanner, stopScanner]);
 
-  // Changement de caméra par l'utilisateur
-  const handleCameraChange = useCallback((e) => {
+  // ── Changement de caméra ──────────────────────────────────────────────────
+  const handleCameraChange = useCallback(async (e) => {
     const deviceId = e.target.value;
-    if (!readerRef.current) return;
-    readerRef.current.reset();
-    setIsScanning(false);
-    setLoading(true);
     setSelectedCamera(deviceId);
+    setIsScanning(false);
+    await stopScanner();
+    startScanner(deviceId);
+  }, [startScanner, stopScanner]);
 
-    const reader = new BrowserMultiFormatReader();
-    readerRef.current = reader;
-    startStream(reader, deviceId);
-  }, [startStream]);
-
+  // ── Saisie manuelle ───────────────────────────────────────────────────────
   const handleManualSubmit = useCallback((e) => {
     e.preventDefault();
     const input = e.target.elements.manualCode;
@@ -129,7 +211,7 @@ const BarcodeScanner = ({ onDetected, onClose, isOpen }) => {
           <span className="barcode-title">
             <i className="fas fa-barcode" /> Scan Code-Barres
           </span>
-          <button className="barcode-close" onClick={onClose}>
+          <button className="barcode-close" onClick={onClose} type="button">
             <i className="fas fa-times" />
           </button>
         </div>
@@ -145,8 +227,8 @@ const BarcodeScanner = ({ onDetected, onClose, isOpen }) => {
             <label><i className="fas fa-video" /> Caméra :</label>
             <select value={selectedCamera} onChange={handleCameraChange}>
               {cameras.map((cam) => (
-                <option key={cam.deviceId} value={cam.deviceId}>
-                  {cam.label || 'Caméra ' + cam.deviceId.slice(0, 8)}
+                <option key={cam.id} value={cam.id}>
+                  {cam.label || 'Caméra ' + cam.id.slice(0, 8)}
                 </option>
               ))}
             </select>
@@ -160,20 +242,25 @@ const BarcodeScanner = ({ onDetected, onClose, isOpen }) => {
               <span>Démarrage de la caméra...</span>
             </div>
           )}
-          <video
-            ref={videoRef}
+
+          {/* html5-qrcode gère lui-même le rendu vidéo dans ce div */}
+          <div
+            id={SCANNER_CONTAINER_ID}
             className="barcode-video"
-            autoPlay
-            playsInline
-            muted
+            style={{ width: '100%' }}
           />
-          <div className="barcode-crosshair">
-            <div className="corner top-left" />
-            <div className="corner top-right" />
-            <div className="corner bottom-left" />
-            <div className="corner bottom-right" />
-          </div>
-          {isScanning && <div className="barcode-scan-line" />}
+
+          {!loading && isScanning && (
+            <>
+              <div className="barcode-crosshair">
+                <div className="corner top-left" />
+                <div className="corner top-right" />
+                <div className="corner bottom-left" />
+                <div className="corner bottom-right" />
+              </div>
+              <div className="barcode-scan-line" />
+            </>
+          )}
         </div>
 
         {lastCode && (

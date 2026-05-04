@@ -364,10 +364,7 @@ const VentesList = ({ saleType = 'counter', isDarkMode, toggleDarkMode }) => {
               Nouvelle Vente
             </button>
           )}
-          <button className="btn-export-stats" onClick={() => exportStats(filtered, saleType)}>
-            <i className="fas fa-file-export"></i>
-            Exporter
-          </button>
+
         </div>
       </div>
 

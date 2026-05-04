@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import BarcodeScanner from './BarcodeScanner';
-import useBarcodeCart from '../../../hooks/useBarcodeCart';
 import './VenteFormModal.css';
 
 const emptyProduit = () => ({ medicine_id: '', medicament: '', code: '', qte: 1, prix_unitaire: 0, ordonnance_requise: false });
@@ -65,53 +64,35 @@ const getInitial = (data) => {
 const VenteFormModal = ({ isOpen, onClose, onSave, initialData, medicines = [], ordonnances = [], isSaving = false }) => {
   const [form, setForm] = useState(getInitial(initialData));
 
-  // ── Scan code-barres caméra ──────────────────────────────────────────────
-  // Adaptateur : useBarcodeCart attend { cart, setCart } avec le format
-  // { id, nom, code, prix, stock, quantite }. On bridge vers form.produits.
-  const cartBridge = useMemo(() => form.produits.map((p) => ({
-    id:       p.medicine_id,
-    nom:      p.medicament,
-    code:     p.code,
-    prix:     p.prix_unitaire,
-    stock:    999, // le stock réel est vérifié côté API
-    quantite: p.qte,
-    ordonnance: p.ordonnance_requise,
-  })), [form.produits]);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scanSuccess, setScanSuccess] = useState('');
+  const [scanError, setScanError] = useState('');
 
-  const setCartBridge = (updater) => {
-    const newCart = typeof updater === 'function' ? updater(cartBridge) : updater;
-    setForm((prev) => ({
-      ...prev,
-      produits: newCart.map((item) => ({
-        medicine_id:      item.id,
-        medicament:       item.nom,
-        code:             item.code,
-        qte:              item.quantite,
-        prix_unitaire:    item.prix,
-        ordonnance_requise: item.ordonnance ?? false,
-      })),
-    }));
-  };
-
-  const {
-    isScannerOpen,
-    openScanner,
-    closeScanner,
-    handleBarcodeScan,
-    scanLoading,
-    scanError,
-    scanSuccess,
-  } = useBarcodeCart({ cart: cartBridge, setCart: setCartBridge });
-  // ────────────────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    setForm(getInitial(initialData));
-  }, [initialData, isOpen, medicines]);
+  const openScanner = () => setIsScannerOpen(true);
+  const closeScanner = () => setIsScannerOpen(false);
 
   const availableMedicines = useMemo(
     () => medicines.filter(isVendableMedicine),
     [medicines],
   );
+
+  const handleCameraScan = (code) => {
+    setScanError('');
+    setScanSuccess('');
+    const scanned = availableMedicines.find((medicine) => medicine.code === code.trim());
+    if (!scanned) {
+      setScanError(`Aucun médicament vendable trouvé pour : ${code}`);
+      setTimeout(() => setScanError(''), 4000);
+      return;
+    }
+    addMedicineToForm(scanned);
+    setScanSuccess(`"${scanned.nom}" ajouté au panier.`);
+    setTimeout(() => setScanSuccess(''), 3000);
+  };
+
+  useEffect(() => {
+    setForm(getInitial(initialData));
+  }, [initialData, isOpen, medicines]);
 
   const total = form.produits.reduce((sum, product) => sum + Number(product.qte || 0) * Number(product.prix_unitaire || 0), 0);
 
@@ -296,8 +277,8 @@ const VenteFormModal = ({ isOpen, onClose, onSave, initialData, medicines = [], 
                   <div className="vscan-row">
                     <input type="text" name="scanCode" value={form.scanCode} onChange={handleBase} placeholder="Saisir le code-barres manuellement" className="vform-input" />
                     <button type="button" className="vscan-btn" onClick={handleScan}>Valider</button>
-                    <button type="button" className="vscan-btn vscan-btn--camera" onClick={openScanner} disabled={scanLoading} title="Scanner via caméra">
-                      {scanLoading ? <i className="fas fa-spinner fa-spin" /> : <i className="fas fa-camera" />}
+                    <button type="button" className="vscan-btn vscan-btn--camera" onClick={openScanner} title="Scanner via caméra">
+                      <i className="fas fa-camera" />
                     </button>
                   </div>
                   {scanSuccess && (
@@ -428,7 +409,7 @@ const VenteFormModal = ({ isOpen, onClose, onSave, initialData, medicines = [], 
 
       <BarcodeScanner
         isOpen={isScannerOpen}
-        onDetected={handleBarcodeScan}
+        onDetected={handleCameraScan}
         onClose={closeScanner}
       />
     </div>
