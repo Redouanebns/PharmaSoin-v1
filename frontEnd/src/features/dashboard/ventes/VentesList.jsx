@@ -338,7 +338,7 @@ const VentesList = ({ saleType = 'counter', isDarkMode, toggleDarkMode }) => {
 
       <div className="ventes-header">
         <div className="ventes-header-left">
-          <div className="ventes-header-icon" style={isOnlineView ? { background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)' } : {}}>
+          <div className="page-header-icon" style={isOnlineView ? { background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)', boxShadow: '0 10px 24px rgba(29, 78, 216, 0.3)' } : {}}>
             <i className={pageIcon}></i>
           </div>
           <div>

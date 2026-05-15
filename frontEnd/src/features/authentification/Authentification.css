@@ -340,42 +340,81 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 0.45rem;
+.custom-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.custom-input-group label {
   font-size: 0.9rem;
   font-weight: 800;
   color: #0f172a;
 }
 
-.auth-page.dark-theme .form-group label {
+.auth-page.dark-theme .custom-input-group label {
   color: #e2e8f0;
 }
 
-.auth-input {
-  width: 100%;
-  border-radius: 16px;
-  border: 1px solid #dbe4ea;
-  padding: 0.95rem 1rem;
-  background: #f8fbff;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.auth-page.dark-theme .auth-input {
+.input-with-icon.align-top {
+  align-items: flex-start;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  color: #94a3b8;
+  transition: color 0.3s ease;
+}
+
+.input-with-icon.align-top .input-icon {
+  top: 1rem;
+}
+
+.custom-control {
+  width: 100%;
+  padding: 0.95rem 1rem 0.95rem 2.75rem !important;
+  border-radius: 16px;
+  border: none !important;
+  background: #f8fbff;
+  color: #1e293b;
+  font-size: 0.95rem;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.auth-page.dark-theme .custom-control {
   background: rgba(15, 23, 42, 0.72);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.08) !important;
   color: #f8fafc;
 }
 
-.auth-input:focus {
-  border-color: rgba(15, 118, 110, 0.4);
-  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
+.custom-control:focus {
+  border-color: #0f766e !important;
   background: #ffffff;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
-.auth-page.dark-theme .auth-input:focus {
-  background: rgba(15, 23, 42, 0.9);
+.auth-page.dark-theme .custom-control:focus {
+  border-color: #0f766e !important;
+  background: #ffffff;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.custom-control:focus + .input-icon,
+.custom-control:not(:placeholder-shown) + .input-icon {
+  color: #0f766e;
 }
 
 .auth-textarea {

@@ -146,6 +146,12 @@
   padding: 1rem;
 }
 
+.cmd-catalog {
+  position: sticky;
+  top: 1rem;
+  height: max-content;
+}
+
 .cmd-catalog-header,
 .cmd-products-header {
   display: flex;

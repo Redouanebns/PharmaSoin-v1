@@ -56,7 +56,7 @@ const StockEntrees = ({ isDarkMode, toggleDarkMode }) => {
     <div className={`stock-page ${isDarkMode ? 'dark-theme' : ''}`}>
 
       <div className="stock-header">
-        <div className="stock-header-icon entree-icon">
+        <div className="page-header-icon">
           <i className="fas fa-arrow-circle-down"></i>
         </div>
         <div>

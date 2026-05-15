@@ -106,7 +106,7 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
     <div className={`categorie-list-container ${isDarkMode ? 'dark-theme' : ''}`}>
       <div className="header-card">
         <div className="d-flex align-items-center gap-3">
-          <div className="header-icon shadow-sm">
+          <div className="page-header-icon">
             <i className="fas fa-tags"></i>
           </div>
           <div>

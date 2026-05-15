@@ -1,0 +1,261 @@
+/* ===== UTILISATEURS LIST ===== */
+.users-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.users-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(15, 118, 110, 0.08);
+  padding: 1.5rem;
+}
+
+.dark-mode .users-card {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.users-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-title i {
+  font-size: 1.5rem;
+  color: var(--dashboard-primary);
+}
+
+.header-title h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--dashboard-text);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.users-search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.users-search-form i {
+  position: absolute;
+  left: 1rem;
+  color: #94a3b8;
+}
+
+.users-search-form input {
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #f8fafc;
+  outline: none;
+  min-width: 260px;
+  transition: all 0.2s ease;
+  color: #1e293b;
+}
+
+.dark-mode .users-search-form input {
+  background: #0f172a;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+.users-search-form input:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.dark-mode .users-search-form input:focus {
+  border-color: #2dd4bf;
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.15);
+}
+
+.btn-add-user {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
+}
+
+.btn-add-user:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.3);
+}
+
+/* Table overrides specific to users */
+.users-table {
+  width: 100%;
+}
+
+.user-name-col {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.user-contact div {
+  font-size: 0.85rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.dark-mode .user-contact div {
+  color: #cbd5e1;
+}
+
+.user-contact i {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  width: 14px;
+}
+
+.role-badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.role-admin {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+}
+
+.role-pharmacien {
+  background: rgba(124, 58, 237, 0.1);
+  color: #6d28d9;
+}
+
+.role-client {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.dark-mode .role-admin { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+.dark-mode .role-pharmacien { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+.dark-mode .role-client { background: rgba(96, 165, 250, 0.15); color: #93c5fd; }
+
+.status-badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-badge.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.status-badge.inactive {
+  background: rgba(100, 116, 139, 0.1);
+  color: #475569;
+}
+
+.dark-mode .status-badge.active { background: rgba(52, 211, 153, 0.15); color: #6ee7b7; }
+.dark-mode .status-badge.inactive { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+
+.user-date {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.dark-mode .user-date {
+  color: #94a3b8;
+}
+
+.btn-edit {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.btn-delete {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+}
+
+.dark-mode .btn-edit { background: rgba(96, 165, 250, 0.15); color: #93c5fd; }
+.dark-mode .btn-delete { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+
+.btn-edit:hover { background: #2563eb; color: white; }
+.btn-delete:hover:not(:disabled) { background: #e11d48; color: white; }
+
+.btn-delete:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.users-loading, .users-error {
+  padding: 3rem;
+  text-align: center;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.users-error {
+  color: #e11d48;
+  background: rgba(225, 29, 72, 0.05);
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .users-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .users-search-form input {
+    width: 100%;
+  }
+}

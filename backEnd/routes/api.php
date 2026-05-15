@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VenteController;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureAdminRole;
@@ -96,5 +97,10 @@ Route::middleware([AuthenticateApiToken::class])->group(function () {
 
         Route::get('/site-settings', [SiteSettingController::class, 'index']);
         Route::put('/site-settings', [SiteSettingController::class, 'update']);
+
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::delete('/users/{user}', [UserController::class, 'destroy']);
     });
 });

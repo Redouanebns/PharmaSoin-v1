@@ -320,3 +320,126 @@
     padding: 0.85rem;
   }
 }
+
+/* ===== GLOBAL DASHBOARD ICONS UNIFICATION ===== */
+.page-header-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, var(--dashboard-primary), var(--dashboard-primary-dark));
+  color: #ffffff;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--dashboard-primary) 30%, transparent);
+}
+
+.page-header-icon svg {
+  color: #ffffff;
+}
+
+/* ===== GLOBAL DASHBOARD TABLES UNIFICATION ===== */
+.dashboard-content-area .table-wrapper,
+.dashboard-content-area .table-responsive,
+.dashboard-content-area .ventes-card {
+  background: var(--dashboard-surface);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--dashboard-border);
+  overflow: auto;
+  backdrop-filter: blur(14px);
+}
+
+.dashboard-content-area table {
+  width: 100%;
+  border-collapse: separate !important;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+
+.dashboard-content-area table thead th {
+  background: rgba(15, 118, 110, 0.06) !important;
+  color: #0f766e !important;
+  font-weight: 800 !important;
+  font-size: 0.82rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1.15rem 1.25rem !important;
+  border-bottom: 2px solid rgba(15, 118, 110, 0.1) !important;
+  border-top: none;
+  white-space: nowrap;
+}
+
+.dashboard-full-layout.role-pharmacien .dashboard-content-area table thead th {
+  background: rgba(124, 58, 237, 0.06) !important;
+  color: #6d28d9 !important;
+  border-bottom: 2px solid rgba(124, 58, 237, 0.1) !important;
+}
+
+.dark-mode .dashboard-content-area table thead th {
+  background: rgba(45, 212, 191, 0.08) !important;
+  color: #2dd4bf !important;
+  border-bottom-color: rgba(45, 212, 191, 0.15) !important;
+}
+
+.dashboard-full-layout.role-pharmacien.dark-mode .dashboard-content-area table thead th {
+  background: rgba(167, 139, 250, 0.08) !important;
+  color: #a78bfa !important;
+  border-bottom-color: rgba(167, 139, 250, 0.15) !important;
+}
+
+.dashboard-content-area table tbody td {
+  padding: 1.1rem 1.25rem !important;
+  vertical-align: middle;
+  color: var(--dashboard-text) !important;
+  border-bottom: 1px solid var(--dashboard-border) !important;
+  transition: background-color 0.2s ease;
+}
+
+.dashboard-content-area table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+.dashboard-content-area table tbody tr:hover td {
+  background: rgba(15, 118, 110, 0.02) !important;
+}
+
+.dashboard-full-layout.role-pharmacien .dashboard-content-area table tbody tr:hover td {
+  background: rgba(124, 58, 237, 0.02) !important;
+}
+
+.dark-mode .dashboard-content-area table tbody tr:hover td {
+  background: rgba(45, 212, 191, 0.03) !important;
+}
+
+.dashboard-full-layout.role-pharmacien.dark-mode .dashboard-content-area table tbody tr:hover td {
+  background: rgba(167, 139, 250, 0.03) !important;
+}
+
+/* Standardize table action buttons */
+.dashboard-content-area table td button:not(.expand-btn),
+.dashboard-content-area table td .btn:not(.expand-btn) {
+  border-radius: 10px !important;
+  padding: 0.45rem 0.65rem !important;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+  border: none !important;
+  margin-right: 0.25rem;
+  text-decoration: none;
+}
+
+.dashboard-content-area table td button:hover:not(.expand-btn),
+.dashboard-content-area table td .btn:hover:not(.expand-btn) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.dashboard-content-area table td button i,
+.dashboard-content-area table td .btn i {
+  font-size: 0.95rem;
+}

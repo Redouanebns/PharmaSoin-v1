@@ -42,7 +42,7 @@ const StockAlertes = ({ isDarkMode, toggleDarkMode }) => {
     <div className={`stock-page ${isDarkMode ? 'dark-theme' : ''}`}>
 
       <div className="stock-header">
-        <div className="stock-header-icon alerte-icon">
+        <div className="page-header-icon">
           <i className="fas fa-exclamation-triangle"></i>
         </div>
         <div>

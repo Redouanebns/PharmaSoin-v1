@@ -76,7 +76,9 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
       <div className="supplier-card">
         <div className="supplier-header">
           <div className="header-title">
-            <i className="fas fa-truck"></i>
+            <div className="page-header-icon">
+              <i className="fas fa-truck"></i>
+            </div>
             <h2>Gestion des Fournisseurs</h2>
           </div>
           <button className="btn-add" onClick={handleAdd}>

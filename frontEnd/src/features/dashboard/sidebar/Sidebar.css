@@ -2,33 +2,36 @@
 .dashboard-sidebar-nav {
   width: 268px;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0f172a 0%, #111827 45%, #0b1220 100%);
+  background: linear-gradient(135deg, #0f766e, #134e4a) !important;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   transition: width 0.25s ease, transform 0.25s ease;
   overflow: hidden;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 8px 0 28px rgba(2, 6, 23, 0.26);
-  position: relative;
+  box-shadow: 4px 0 24px rgba(15, 118, 110, 0.35);
+  position: sticky;
+  top: 0;
+  height: 100vh;
   z-index: 60;
 }
 
+/* Rôle pharmacien — violet */
 .dashboard-sidebar-nav.role-pharmacien {
-  background: linear-gradient(180deg, #2e1065 0%, #4c1d95 55%, #111827 100%);
+  background: linear-gradient(135deg, #7c3aed, #5b21b6) !important;
+  box-shadow: 4px 0 24px rgba(124, 58, 237, 0.35);
 }
 
-.dashboard-sidebar-nav::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.12), transparent 38%);
-  pointer-events: none;
+/* Dark mode — légèrement plus sombre */
+.dashboard-sidebar-nav.dark-mode {
+  background: linear-gradient(135deg, #0d6560, #0a3b38) !important;
 }
 
-.dashboard-sidebar-nav.role-pharmacien::before {
-  background: radial-gradient(circle at top left, rgba(196, 181, 253, 0.14), transparent 40%);
+.dashboard-sidebar-nav.role-pharmacien.dark-mode {
+  background: linear-gradient(135deg, #6d28d9, #4c1d95) !important;
 }
+
+
 
 .dashboard-sidebar-nav.collapsed {
   width: 82px;
@@ -124,13 +127,33 @@
 
 .sidebar-nav-list {
   flex: 1;
-  padding: 1rem 0.85rem;
+  padding: 1rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   z-index: 1;
+}
+
+.sidebar-nav-list::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-nav-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-nav-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+.sidebar-nav-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-nav-list > * {
+  margin-left: 0.85rem;
+  margin-right: 0.85rem;
 }
 
 .nav-section-label {

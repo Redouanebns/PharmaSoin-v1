@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { User, Mail, Lock, Phone, MapPin, ShieldCheck } from 'lucide-react';
 import api, { backendBaseURL } from '../../services/api';
 import { resolveDefaultRoute, setAuthSession } from '../../utils/auth';
 import './Authentification.css';
@@ -247,32 +248,38 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
 
           {mode === 'login' ? (
             <form onSubmit={handleSubmitLogin} className="auth-form">
-              <div className="form-group">
+              <div className="custom-input-group">
                 <label htmlFor="login-email">Adresse email</label>
-                <input
-                  type="email"
-                  id="login-email"
-                  name="email"
-                  className="form-control auth-input"
-                  placeholder="admin@pharmacy.test"
-                  value={loginData.email}
-                  onChange={handleLoginChange}
-                  required
-                />
+                <div className="input-with-icon">
+                  <Mail size={18} className="input-icon" />
+                  <input
+                    type="email"
+                    id="login-email"
+                    name="email"
+                    className="custom-control auth-input"
+                    placeholder="admin@pharmacy.test"
+                    value={loginData.email}
+                    onChange={handleLoginChange}
+                    required
+                  />
+                </div>
               </div>
 
-              <div className="form-group">
+              <div className="custom-input-group">
                 <label htmlFor="login-password">Mot de passe</label>
-                <input
-                  type="password"
-                  id="login-password"
-                  name="password"
-                  className="form-control auth-input"
-                  placeholder="••••••••"
-                  value={loginData.password}
-                  onChange={handleLoginChange}
-                  required
-                />
+                <div className="input-with-icon">
+                  <Lock size={18} className="input-icon" />
+                  <input
+                    type="password"
+                    id="login-password"
+                    name="password"
+                    className="custom-control auth-input"
+                    placeholder="••••••••"
+                    value={loginData.password}
+                    onChange={handleLoginChange}
+                    required
+                  />
+                </div>
               </div>
 
               <div className="auth-demo-accounts">
@@ -281,83 +288,99 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
               </div>
 
               <button type="submit" className="btn-auth-submit" disabled={loading}>
-                {loading ? 'Connexion...' : 'Se connecter'}
+                {loading ? <><span className="spinner-border spinner-border-sm me-2"></span>Connexion...</> : 'Se connecter'}
               </button>
             </form>
           ) : (
             <form onSubmit={handleSubmitRegister} className="auth-form">
               <div className="auth-form-grid auth-form-grid--double">
-                <div className="form-group">
+                <div className="custom-input-group">
                   <label htmlFor="register-name">Nom complet</label>
-                  <input
-                    type="text"
-                    id="register-name"
-                    name="name"
-                    className="form-control auth-input"
-                    placeholder="Nom complet"
-                    value={registerData.name}
-                    onChange={handleRegisterChange}
-                    required
-                  />
+                  <div className="input-with-icon">
+                    <User size={18} className="input-icon" />
+                    <input
+                      type="text"
+                      id="register-name"
+                      name="name"
+                      className="custom-control auth-input"
+                      placeholder="Votre nom complet"
+                      value={registerData.name}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="form-group">
+                <div className="custom-input-group">
                   <label htmlFor="register-email">Adresse email</label>
-                  <input
-                    type="email"
-                    id="register-email"
-                    name="email"
-                    className="form-control auth-input"
-                    placeholder="utilisateur@pharmacy.test"
-                    value={registerData.email}
-                    onChange={handleRegisterChange}
-                    required
-                  />
+                  <div className="input-with-icon">
+                    <Mail size={18} className="input-icon" />
+                    <input
+                      type="email"
+                      id="register-email"
+                      name="email"
+                      className="custom-control auth-input"
+                      placeholder="utilisateur@exemple.com"
+                      value={registerData.email}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="form-group">
+                <div className="custom-input-group">
                   <label htmlFor="register-phone">Téléphone</label>
-                  <input
-                    type="text"
-                    id="register-phone"
-                    name="phone"
-                    className="form-control auth-input"
-                    placeholder="+212600000000"
-                    value={registerData.phone}
-                    onChange={handleRegisterChange}
-                  />
+                  <div className="input-with-icon">
+                    <Phone size={18} className="input-icon" />
+                    <input
+                      type="text"
+                      id="register-phone"
+                      name="phone"
+                      className="custom-control auth-input"
+                      placeholder="+212600000000"
+                      value={registerData.phone}
+                      onChange={handleRegisterChange}
+                    />
+                  </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="register-role">Rôle</label>
-                  <select
-                    id="register-role"
-                    name="role"
-                    className="form-select auth-input"
-                    value={registerData.role}
-                    onChange={handleRegisterChange}
-                    required
-                  >
-                    {roleOptions.map((role) => (
-                      <option key={role.value} value={role.value}>
-                        {role.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="custom-input-group">
+                  <label htmlFor="register-role">Rôle souhaité</label>
+                  <div className="input-with-icon">
+                    <ShieldCheck size={18} className="input-icon" />
+                    <select
+                      id="register-role"
+                      name="role"
+                      className="custom-control auth-input"
+                      value={registerData.role}
+                      onChange={handleRegisterChange}
+                      required
+                      style={{ appearance: 'none', paddingRight: '2rem' }}
+                    >
+                      {roleOptions.map((role) => (
+                        <option key={role.value} value={role.value}>
+                          {role.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="register-address">Adresse</label>
-                <textarea
-                  id="register-address"
-                  name="address"
-                  className="form-control auth-input auth-textarea"
-                  placeholder="Adresse du compte"
-                  value={registerData.address}
-                  onChange={handleRegisterChange}
-                  rows="3"
-                />
+              <div className="custom-input-group">
+                <label htmlFor="register-address">Adresse complète</label>
+                <div className="input-with-icon align-top">
+                  <MapPin size={18} className="input-icon" />
+                  <textarea
+                    id="register-address"
+                    name="address"
+                    className="custom-control auth-input auth-textarea"
+                    placeholder="Votre adresse (rue, ville, code postal)"
+                    value={registerData.address}
+                    onChange={handleRegisterChange}
+                    rows="2"
+                  />
+                </div>
               </div>
 
               <div className="auth-role-grid">
@@ -377,37 +400,43 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
               </div>
 
               <div className="auth-form-grid auth-form-grid--double">
-                <div className="form-group">
+                <div className="custom-input-group">
                   <label htmlFor="register-password">Mot de passe</label>
-                  <input
-                    type="password"
-                    id="register-password"
-                    name="password"
-                    className="form-control auth-input"
-                    placeholder="Minimum 8 caractères"
-                    value={registerData.password}
-                    onChange={handleRegisterChange}
-                    required
-                  />
+                  <div className="input-with-icon">
+                    <Lock size={18} className="input-icon text-success" />
+                    <input
+                      type="password"
+                      id="register-password"
+                      name="password"
+                      className="custom-control auth-input"
+                      placeholder="Minimum 8 caractères"
+                      value={registerData.password}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="form-group">
+                <div className="custom-input-group">
                   <label htmlFor="register-password-confirmation">Confirmation</label>
-                  <input
-                    type="password"
-                    id="register-password-confirmation"
-                    name="password_confirmation"
-                    className="form-control auth-input"
-                    placeholder="Confirmez le mot de passe"
-                    value={registerData.password_confirmation}
-                    onChange={handleRegisterChange}
-                    required
-                  />
+                  <div className="input-with-icon">
+                    <Lock size={18} className="input-icon text-success" />
+                    <input
+                      type="password"
+                      id="register-password-confirmation"
+                      name="password_confirmation"
+                      className="custom-control auth-input"
+                      placeholder="Confirmez le mot de passe"
+                      value={registerData.password_confirmation}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
               <button type="submit" className="btn-auth-submit" disabled={loading || !publicSettings.enable_registration}>
-                {loading ? 'Création du compte...' : 'Créer le compte'}
+                {loading ? <><span className="spinner-border spinner-border-sm me-2"></span>Création du compte...</> : 'Créer le compte'}
               </button>
             </form>
           )}

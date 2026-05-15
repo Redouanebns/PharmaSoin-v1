@@ -16,7 +16,7 @@ const HeroSection = ({ onConnexionClick }) => {
           </span>
           <h1 className="hero-title">
             {t('hero.title', 'Votre Pharmacie')} <br />
-            <span className="hero-highlight">PharmaSoin</span>
+            <span className="hero-highlight">{t('hero.pharmacy_name', 'PharmaSoin')}</span>
           </h1>
           <p className="hero-subtitle">{t('hero.subtitle')}</p>
           <div className="hero-actions">

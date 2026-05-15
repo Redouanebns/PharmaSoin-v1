@@ -63,7 +63,7 @@ const StockSorties = ({ isDarkMode, toggleDarkMode }) => {
     <div className={`stock-page ${isDarkMode ? 'dark-theme' : ''}`}>
 
       <div className="stock-header">
-        <div className="stock-header-icon sortie-icon">
+        <div className="page-header-icon">
           <i className="fas fa-arrow-circle-up"></i>
         </div>
         <div>

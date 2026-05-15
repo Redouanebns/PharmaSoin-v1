@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { User, Mail, Phone, MapPin, Image, Lock, ShieldCheck, KeyRound } from 'lucide-react';
 import api from '../../../services/api';
 import BrandLoader from '../../../components/BrandLoader';
 import { getInitials, getRoleLabel, setAuthSession } from '../../../utils/auth';
@@ -359,52 +360,84 @@ const ClientDashboard = ({ currentUser, isDarkMode, onLogout, onAuthenticated, t
           {profileMessage && <div className="client-dashboard__alert success">{profileMessage}</div>}
 
           <div className="client-dashboard__form-grid">
-            <div className="form-group">
+            <div className="custom-input-group">
               <label>Nom complet</label>
-              <input className="form-control" name="name" value={profileForm.name} onChange={handleProfileChange} required />
+              <div className="input-with-icon">
+                <User size={18} className="input-icon" />
+                <input className="custom-control" name="name" value={profileForm.name} onChange={handleProfileChange} required placeholder="Votre nom complet" />
+              </div>
             </div>
-            <div className="form-group">
+            <div className="custom-input-group">
               <label>Email</label>
-              <input className="form-control" type="email" name="email" value={profileForm.email} onChange={handleProfileChange} required />
+              <div className="input-with-icon">
+                <Mail size={18} className="input-icon" />
+                <input className="custom-control" type="email" name="email" value={profileForm.email} onChange={handleProfileChange} required placeholder="exemple@email.com" />
+              </div>
             </div>
-            <div className="form-group">
+            <div className="custom-input-group">
               <label>Téléphone</label>
-              <input className="form-control" name="phone" value={profileForm.phone} onChange={handleProfileChange} />
+              <div className="input-with-icon">
+                <Phone size={18} className="input-icon" />
+                <input className="custom-control" name="phone" value={profileForm.phone} onChange={handleProfileChange} placeholder="+212 6..." />
+              </div>
             </div>
-            <div className="form-group">
+            <div className="custom-input-group">
               <label>Avatar (URL)</label>
-              <input className="form-control" name="avatar" value={profileForm.avatar} onChange={handleProfileChange} />
+              <div className="input-with-icon">
+                <Image size={18} className="input-icon" />
+                <input className="custom-control" name="avatar" value={profileForm.avatar} onChange={handleProfileChange} placeholder="https://..." />
+              </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Adresse</label>
-            <textarea className="form-control" rows="3" name="address" value={profileForm.address} onChange={handleProfileChange} />
+          <div className="custom-input-group" style={{ marginTop: '1.25rem' }}>
+            <label>Adresse complète</label>
+            <div className="input-with-icon align-top">
+              <MapPin size={18} className="input-icon" />
+              <textarea className="custom-control" rows="3" name="address" value={profileForm.address} onChange={handleProfileChange} placeholder="Votre adresse physique" />
+            </div>
           </div>
 
           <div className="client-dashboard__password-box">
-            <h3>Sécurité</h3>
+            <div className="client-dashboard__section-head" style={{ marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>
+                  <KeyRound size={20} /> Sécurité
+                </h3>
+              </div>
+            </div>
             <div className="client-dashboard__form-grid">
-              <div className="form-group">
+              <div className="custom-input-group">
                 <label>Mot de passe actuel</label>
-                <input className="form-control" type="password" name="current_password" value={profileForm.current_password} onChange={handleProfileChange} />
+                <div className="input-with-icon">
+                  <Lock size={18} className="input-icon text-muted" />
+                  <input className="custom-control" type="password" name="current_password" value={profileForm.current_password} onChange={handleProfileChange} placeholder="Requis pour modifier" />
+                </div>
               </div>
-              <div className="form-group">
+              <div className="custom-input-group">
                 <label>Nouveau mot de passe</label>
-                <input className="form-control" type="password" name="password" value={profileForm.password} onChange={handleProfileChange} />
+                <div className="input-with-icon">
+                  <Lock size={18} className="input-icon text-success" />
+                  <input className="custom-control" type="password" name="password" value={profileForm.password} onChange={handleProfileChange} placeholder="Nouveau mot de passe" />
+                </div>
               </div>
-              <div className="form-group">
+              <div className="custom-input-group">
                 <label>Confirmation</label>
-                <input className="form-control" type="password" name="password_confirmation" value={profileForm.password_confirmation} onChange={handleProfileChange} />
+                <div className="input-with-icon">
+                  <Lock size={18} className="input-icon text-success" />
+                  <input className="custom-control" type="password" name="password_confirmation" value={profileForm.password_confirmation} onChange={handleProfileChange} placeholder="Retapez le mot de passe" />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="client-dashboard__profile-actions">
-            <button type="submit" className="client-dashboard__save-btn" disabled={isSavingProfile}>
-              {isSavingProfile ? 'Enregistrement...' : 'Enregistrer les modifications'}
-            </button>
-          </div>
+          <button type="submit" className="client-dashboard__submit-btn" disabled={isSavingProfile}>
+            {isSavingProfile ? (
+              <><div className="spinner-border spinner-border-sm me-2"></div> Enregistrement...</>
+            ) : (
+              <><ShieldCheck size={18} className="me-2" /> Mettre à jour le profil</>
+            )}
+          </button>
         </form>
       </section>
     </div>

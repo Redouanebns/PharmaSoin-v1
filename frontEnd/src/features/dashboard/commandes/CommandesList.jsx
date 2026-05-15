@@ -6,7 +6,7 @@ import './CommandesList.css';
 const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
   const [commandes, setCommandes] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCommande, setEditingCommande] = useState(null);
@@ -82,7 +82,6 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
     }
   };
 
-  if (loading) return <div className="loading-spinner">Chargement...</div>;
   if (error) return <div className="p-4 text-center text-danger">{error}</div>;
 
   return (
@@ -90,7 +89,9 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
 
       <div className="commandes-header">
         <div className="header-left">
-          <i className="fas fa-clipboard-list header-icon"></i>
+          <div className="page-header-icon">
+            <i className="fas fa-clipboard-list"></i>
+          </div>
           <h2>Gestion des Commandes</h2>
         </div>
         <button className="btn-new-commande" onClick={handleAdd}>
@@ -137,7 +138,15 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
             </tr>
           </thead>
           <tbody>
-            {commandes.length > 0 ? (
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="skeleton-row">
+                  {Array.from({ length: 6 }).map((__, j) => (
+                    <td key={j}><span className="skeleton-cell"></span></td>
+                  ))}
+                </tr>
+              ))
+            ) : commandes.length > 0 ? (
               commandes.map((commande) => (
                 <tr key={commande.id}>
                   <td>

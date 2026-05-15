@@ -128,7 +128,9 @@ const TransactionsList = ({ isDarkMode, toggleDarkMode }) => {
       <div className="transactions-header">
         <div>
           <div className="transactions-title-row">
-            <Wallet size={26} />
+            <div className="page-header-icon me-3">
+              <Wallet size={26} />
+            </div>
             <h2>Transactions</h2>
           </div>
           <p className="transactions-subtitle">Suivi des flux financiers manuels, ventes et commandes fournisseurs.</p>

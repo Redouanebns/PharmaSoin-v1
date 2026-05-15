@@ -16,7 +16,6 @@ const Sidebar = ({ currentUser, isDarkMode, isOpen, onClose, onDeconnexion }) =>
       { name: 'Statistiques', icon: 'fas fa-chart-pie', path: '/dashboard/stats' },
       { name: 'Médicaments', icon: 'fas fa-pills', path: '/dashboard/medicines' },
       { name: 'Ordonnances', icon: 'fas fa-file-medical', path: '/dashboard/ordonnances' },
-      { name: 'Profil', icon: 'fas fa-id-card', path: '/dashboard/profile' },
     ];
 
     if (isAdmin) {
@@ -24,9 +23,19 @@ const Sidebar = ({ currentUser, isDarkMode, isOpen, onClose, onDeconnexion }) =>
       items.splice(3, 0, { name: 'Fournisseurs', icon: 'fas fa-truck', path: '/dashboard/suppliers' });
       items.splice(4, 0, { name: 'Commandes', icon: 'fas fa-shopping-bag', path: '/dashboard/commandes' });
       items.splice(5, 0, { name: 'Transactions', icon: 'fas fa-wallet', path: '/dashboard/transactions' });
-      items.push({ name: 'Paramètres', icon: 'fas fa-sliders-h', path: '/dashboard/settings' });
     }
 
+    return items;
+  }, [isAdmin]);
+
+  const bottomItems = useMemo(() => {
+    const items = [
+      { name: 'Profil', icon: 'fas fa-id-card', path: '/dashboard/profile' },
+    ];
+    if (isAdmin) {
+      items.push({ name: 'Utilisateurs', icon: 'fas fa-users-cog', path: '/dashboard/users' });
+      items.push({ name: 'Paramètres', icon: 'fas fa-sliders-h', path: '/dashboard/settings' });
+    }
     return items;
   }, [isAdmin]);
 
@@ -210,6 +219,22 @@ const Sidebar = ({ currentUser, isDarkMode, isOpen, onClose, onDeconnexion }) =>
               ))}
             </div>
           )}
+
+          {/* ===== SECTION COMPTE ===== */}
+          <div className="sidebar-divider sidebar-divider--section"></div>
+          {!isCollapsed && <span className="nav-section-label">Compte</span>}
+          {bottomItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
+              onClick={onClose}
+              title={isCollapsed ? item.name : ''}
+            >
+              <i className={item.icon}></i>
+              {!isCollapsed && <span>{item.name}</span>}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="sidebar-footer">

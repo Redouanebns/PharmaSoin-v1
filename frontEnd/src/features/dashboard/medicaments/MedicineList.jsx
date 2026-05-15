@@ -238,7 +238,7 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
     <div className={`medicine-list-container ${isDarkMode ? 'dark-theme' : ''}`}>
       <div className="header-card">
         <div className="d-flex align-items-center gap-3">
-          <div className="header-icon shadow-sm">
+          <div className="page-header-icon">
             <i className="fas fa-pills"></i>
           </div>
           <div>

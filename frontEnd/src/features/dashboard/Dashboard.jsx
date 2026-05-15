@@ -1,20 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import CategorieList from './categorie/CategorieList';
+import CategorieList from './categories/CategorieList';
 import MedicineList from './medicaments/MedicineList';
-import CommandesList from './orders/CommandesList';
-import Ordonnances from './pharmacy/Ordonnances';
-import ProfileSettings from './profile/ProfileSettings';
+import CommandesList from './commandes/CommandesList';
+import Ordonnances from './ordonnances/Ordonnances';
+import ProfileSettings from './profil/ProfileSettings';
 import Sidebar from './sidebar/Sidebar';
-import SiteSettings from './settings/SiteSettings';
-import Statistic from './statistic/Statistic';
+import SiteSettings from './parametres/SiteSettings';
+import Statistic from './statistiques/Statistic';
 import StockAlertes from './stock/StockAlertes';
 import StockEntrees from './stock/StockEntrees';
 import StockExpiredProducts from './stock/StockExpiredProducts';
 import StockSorties from './stock/StockSorties';
-import FournisseurList from './suppliers/FournisseurList';
+import FournisseurList from './fournisseurs/FournisseurList';
 import TransactionsList from './transactions/TransactionsList';
 import VentesList from './ventes/VentesList';
+import UtilisateursList from './utilisateurs/UtilisateursList';
 import BrandLoader from '../../components/BrandLoader';
 import { getInitials, getRoleLabel } from '../../utils/auth';
 import './Dashboard.css';
@@ -65,6 +66,7 @@ const Dashboard = ({ currentUser, isDarkMode, onLogout, searchQuery, setSearchQu
       ...commonRoutes,
       { path: 'categories', element: <CategorieList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'suppliers', element: <FournisseurList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'users', element: <UtilisateursList currentUser={currentUser} isDarkMode={isDarkMode} /> },
       { path: 'commandes', element: <CommandesList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'transactions', element: <TransactionsList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'settings', element: <SiteSettings currentUser={currentUser} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },

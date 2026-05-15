@@ -119,7 +119,9 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
       <div className="ordonnances-card">
         <div className="card-header-flex">
           <div className="header-title">
-            <FileText size={24} className="me-2" />
+            <div className="page-header-icon me-3">
+              <FileText size={24} />
+            </div>
             <div>
               <h3>Liste des ordonnances</h3>
               <p className="header-caption">La dispensation est ensuite gérée au moment de la vente.</p>
