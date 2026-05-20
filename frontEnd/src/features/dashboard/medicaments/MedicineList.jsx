@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
+import { Clock, Sun, Moon } from 'lucide-react';
 import MedicineFormModal from './MedicineFormModal';
 import './MedicineList.css';
 
@@ -250,17 +251,14 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
         </div>
 
         <div className="d-flex align-items-center gap-4">
-          <div className="text-muted font-monospace fs-5">{clock}</div>
+          <div className="clock-display" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', borderRadius: '999px', padding: '0.5rem 1rem', background: isDarkMode ? 'rgba(15, 23, 42, 0.82)' : '#f8fafc', border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', color: isDarkMode ? '#e2e8f0' : '#475569', fontWeight: '700' }}>
+            <Clock size={18} />
+            <span>{clock}</span>
+          </div>
           <div className="d-flex align-items-center gap-3 border-start ps-4">
-            <button className="btn btn-link text-muted p-0" onClick={toggleDarkMode}>
-              <i className={`fas ${isDarkMode ? 'fa-sun' : 'fa-moon'} fs-5`}></i>
+            <button className="theme-btn" onClick={toggleDarkMode} type="button" style={{ width: '40px', height: '40px', borderRadius: '999px', border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid #dbe4ea', background: isDarkMode ? 'rgba(15, 23, 42, 0.82)' : '#f8fafc', color: isDarkMode ? '#e2e8f0' : '#475569', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <div className="d-flex align-items-center gap-2 text-dark fw-medium">
-              <div className="bg-light rounded-circle d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
-                <i className="fas fa-user small"></i>
-              </div>
-              <span>Admin</span>
-            </div>
           </div>
         </div>
       </div>
@@ -288,7 +286,7 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm"
+              className="btn btn-success text-white d-flex align-items-center gap-2 shadow-sm"
               disabled={isImporting}
             >
               {isImporting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-file-excel"></i>}
@@ -391,16 +389,36 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
                         <div className="molecule-block">
                           {splitMolecules(medicine.molecule).map((item) => (
                             <span key={`${medicine.id}-${item}`} className="molecule-pill">
+                              <i className="fas fa-atom opacity-50 me-1"></i>
                               {item}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-muted small fw-semibold">Aucune molécule renseignée</span>
+                        <span className="text-muted small fw-semibold">
+                          <i className="fas fa-minus me-1"></i>
+                          Aucune molécule
+                        </span>
                       )}
                     </td>
                     <td>
-                      <span className="cat-badge">{medicine.dose || '—'}</span>
+                      {medicine.dose && (
+                        <span
+                          className="dose-tag"
+                          data-form={
+                            /comprim[eé]|cp\b/i.test(medicine.dose) ? 'comprimé' :
+                            /g[eé]lule/i.test(medicine.dose)        ? 'gélule' :
+                            /sirop/i.test(medicine.dose)            ? 'sirop' :
+                            /solution|susp/i.test(medicine.dose)    ? 'solution' :
+                            /inject|ampoule|im\b|iv\b/i.test(medicine.dose) ? 'injection' :
+                            /pomm|cr[eè]me/i.test(medicine.dose)   ? 'pommade' :
+                            /suppo/i.test(medicine.dose)            ? 'suppositoire' :
+                            'default'
+                          }
+                        >
+                          {medicine.dose}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <span className="fw-medium">{medicine.cat}</span>

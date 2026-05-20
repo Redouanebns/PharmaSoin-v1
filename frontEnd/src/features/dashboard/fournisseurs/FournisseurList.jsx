@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../../services/api';
+import PageHero from '../shared/PageHero';
 import FournisseurFormModel from './FournisseurFormModel';
 import './FournisseurList.css';
 
@@ -72,15 +73,16 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`supplier-container ${isDarkMode ? 'dark-mode' : ''}`}>
+      <PageHero 
+        title="Gestion des Fournisseurs" 
+        description="Gérez votre liste de fournisseurs et leurs informations de contact." 
+        icon="fas fa-truck" 
+        isDarkMode={isDarkMode} 
+        toggleDarkMode={toggleDarkMode} 
+      />
 
       <div className="supplier-card">
-        <div className="supplier-header">
-          <div className="header-title">
-            <div className="page-header-icon">
-              <i className="fas fa-truck"></i>
-            </div>
-            <h2>Gestion des Fournisseurs</h2>
-          </div>
+        <div className="supplier-header" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
           <button className="btn-add" onClick={handleAdd}>
             <i className="fas fa-plus"></i>
             Nouvel Fournisseur

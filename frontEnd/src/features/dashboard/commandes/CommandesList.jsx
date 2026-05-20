@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../../services/api';
+import PageHero from '../shared/PageHero';
 import CommandeFormModel from './CommandeFormModel';
 import './CommandesList.css';
 
@@ -86,14 +87,15 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className={`commandes-container ${isDarkMode ? 'dark-mode' : ''}`}>
+      <PageHero 
+        title="Gestion des Commandes" 
+        description="Gérez vos commandes fournisseurs et suivez leurs statuts." 
+        icon="fas fa-clipboard-list" 
+        isDarkMode={isDarkMode} 
+        toggleDarkMode={toggleDarkMode} 
+      />
 
-      <div className="commandes-header">
-        <div className="header-left">
-          <div className="page-header-icon">
-            <i className="fas fa-clipboard-list"></i>
-          </div>
-          <h2>Gestion des Commandes</h2>
-        </div>
+      <div className="d-flex justify-content-end mb-4">
         <button className="btn-new-commande" onClick={handleAdd}>
           <i className="fas fa-plus"></i> Nouvelle commande
         </button>

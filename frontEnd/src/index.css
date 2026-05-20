@@ -110,3 +110,124 @@ body.dark-mode {
 .dark-theme .input-with-icon textarea {
   color: #f8fafc !important;
 }
+
+/* ============================================================
+   STYLES GLOBAUX POUR LES BOUTONS D'ACTION (MODIFIER/SUPPRIMER)
+   ============================================================ */
+.action-btn,
+.edit-btn,
+.delete-btn,
+.vedit-btn,
+.vdelete-btn,
+.stock-action-btn,
+.vaction-btn,
+.btn-edit,
+.btn-delete {
+  width: 2.4rem !important;
+  height: 2.4rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 10px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid transparent !important;
+  background: rgba(241, 245, 249, 0.6) !important;
+  color: #64748b !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Bouton Éditer (Modifier) */
+.edit-btn,
+.vedit-btn,
+.btn-edit,
+.action-btn.edit {
+  color: #0f766e !important;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(15, 118, 110, 0.05)) !important;
+  border-color: rgba(20, 184, 166, 0.15) !important;
+}
+
+.edit-btn:hover,
+.vedit-btn:hover,
+.btn-edit:hover,
+.action-btn.edit:hover {
+  background: #0f766e !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2) !important;
+  border-color: #0f766e !important;
+}
+
+/* Bouton Supprimer */
+.delete-btn,
+.vdelete-btn,
+.btn-delete,
+.action-btn.delete {
+  color: #e11d48 !important;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(225, 29, 72, 0.05)) !important;
+  border-color: rgba(244, 63, 94, 0.15) !important;
+}
+
+.delete-btn:hover,
+.vdelete-btn:hover,
+.btn-delete:hover,
+.action-btn.delete:hover {
+  background: #e11d48 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2) !important;
+  border-color: #e11d48 !important;
+}
+
+/* Icons styling within the buttons */
+.action-btn i,
+.edit-btn i,
+.delete-btn i,
+.vedit-btn i,
+.vdelete-btn i,
+.stock-action-btn i,
+.vaction-btn i,
+.btn-edit i,
+.btn-delete i {
+  font-size: 1rem !important;
+  transition: transform 0.2s ease !important;
+}
+
+.action-btn:hover i,
+.edit-btn:hover i,
+.delete-btn:hover i,
+.vedit-btn:hover i,
+.vdelete-btn:hover i,
+.stock-action-btn:hover i,
+.vaction-btn:hover i,
+.btn-edit:hover i,
+.btn-delete:hover i {
+  transform: scale(1.15) !important;
+}
+
+/* Dark mode overrides for Action Buttons */
+.dark-mode .edit-btn,
+.dark-mode .vedit-btn,
+.dark-mode .btn-edit,
+.dark-mode .action-btn.edit,
+.dark-theme .edit-btn,
+.dark-theme .vedit-btn,
+.dark-theme .btn-edit,
+.dark-theme .action-btn.edit {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(15, 118, 110, 0.1)) !important;
+  color: #2dd4bf !important;
+  border-color: rgba(45, 212, 191, 0.2) !important;
+}
+
+.dark-mode .delete-btn,
+.dark-mode .vdelete-btn,
+.dark-mode .btn-delete,
+.dark-mode .action-btn.delete,
+.dark-theme .delete-btn,
+.dark-theme .vdelete-btn,
+.dark-theme .btn-delete,
+.dark-theme .action-btn.delete {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(225, 29, 72, 0.1)) !important;
+  color: #fb7185 !important;
+  border-color: rgba(251, 113, 133, 0.2) !important;
+}

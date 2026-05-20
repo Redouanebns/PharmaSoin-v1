@@ -18,6 +18,7 @@ import VentesList from './ventes/VentesList';
 import UtilisateursList from './utilisateurs/UtilisateursList';
 import BrandLoader from '../../components/BrandLoader';
 import { getInitials, getRoleLabel } from '../../utils/auth';
+import { Clock, Sun, Moon } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = ({ currentUser, isDarkMode, onLogout, searchQuery, setSearchQuery, toggleDarkMode }) => {
@@ -27,6 +28,12 @@ const Dashboard = ({ currentUser, isDarkMode, onLogout, searchQuery, setSearchQu
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [entryLoaderVisible, setEntryLoaderVisible] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const isAdmin = currentUser?.role === 'admin';
   const dashboardTitle = isAdmin ? 'Tableau de bord administration' : 'Espace pharmacien';
@@ -38,6 +45,9 @@ const Dashboard = ({ currentUser, isDarkMode, onLogout, searchQuery, setSearchQu
     const commonRoutes = [
       { path: 'stats', element: <Statistic currentUser={currentUser} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'medicines', element: <MedicineList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'categories', element: <CategorieList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'suppliers', element: <FournisseurList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
+      { path: 'commandes', element: <CommandesList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'ordonnances', element: <Ordonnances isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'ventes', element: <VentesList saleType="counter" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'ventes-en-ligne', element: <VentesList saleType="online" isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
@@ -64,10 +74,7 @@ const Dashboard = ({ currentUser, isDarkMode, onLogout, searchQuery, setSearchQu
 
     return [
       ...commonRoutes,
-      { path: 'categories', element: <CategorieList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
-      { path: 'suppliers', element: <FournisseurList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'users', element: <UtilisateursList currentUser={currentUser} isDarkMode={isDarkMode} /> },
-      { path: 'commandes', element: <CommandesList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'transactions', element: <TransactionsList isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
       { path: 'settings', element: <SiteSettings currentUser={currentUser} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} /> },
     ];
@@ -158,7 +165,11 @@ const Dashboard = ({ currentUser, isDarkMode, onLogout, searchQuery, setSearchQu
                   onClick={() => setProfileMenuOpen((previous) => !previous)}
                   aria-expanded={profileMenuOpen}
                 >
-                  <div className="user-avatar user-avatar--initials">{getInitials(currentUser?.name)}</div>
+                  {currentUser?.avatar ? (
+                    <img src={currentUser.avatar} alt="Avatar" className="user-avatar" style={{ objectFit: 'cover', background: 'transparent', padding: 0 }} />
+                  ) : (
+                    <div className="user-avatar user-avatar--initials">{getInitials(currentUser?.name)}</div>
+                  )}
                   <div className="user-meta">
                     <strong>{currentUser?.name || 'Utilisateur'}</strong>
                     <span>{getRoleLabel(currentUser?.role)}</span>

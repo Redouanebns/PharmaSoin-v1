@@ -85,9 +85,12 @@ const printInvoicePDF = (vente) => {
 </head>
 <body>
   <div class="header">
-    <div class="brand">
-      ${siteName}
-      <small>Système de Gestion Pharmaceutique</small>
+    <div class="brand" style="display: flex; align-items: center; gap: 12px;">
+      <img src="${window.location.origin}/assets/images/logo.png" alt="Logo PharmaSoin" style="width: 54px; height: 54px; object-fit: contain; border-radius: 8px;" />
+      <div>
+        ${siteName}
+        <small>Système de Gestion Pharmaceutique</small>
+      </div>
     </div>
     <div class="invoice-meta">
       <h2>FACTURE</h2>

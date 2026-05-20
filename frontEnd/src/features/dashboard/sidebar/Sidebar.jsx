@@ -15,14 +15,14 @@ const Sidebar = ({ currentUser, isDarkMode, isOpen, onClose, onDeconnexion }) =>
     const items = [
       { name: 'Statistiques', icon: 'fas fa-chart-pie', path: '/dashboard/stats' },
       { name: 'Médicaments', icon: 'fas fa-pills', path: '/dashboard/medicines' },
+      { name: 'Catégories', icon: 'fas fa-tags', path: '/dashboard/categories' },
+      { name: 'Fournisseurs', icon: 'fas fa-truck', path: '/dashboard/suppliers' },
+      { name: 'Commandes', icon: 'fas fa-shopping-bag', path: '/dashboard/commandes' },
       { name: 'Ordonnances', icon: 'fas fa-file-medical', path: '/dashboard/ordonnances' },
     ];
 
     if (isAdmin) {
-      items.splice(2, 0, { name: 'Catégories', icon: 'fas fa-tags', path: '/dashboard/categories' });
-      items.splice(3, 0, { name: 'Fournisseurs', icon: 'fas fa-truck', path: '/dashboard/suppliers' });
-      items.splice(4, 0, { name: 'Commandes', icon: 'fas fa-shopping-bag', path: '/dashboard/commandes' });
-      items.splice(5, 0, { name: 'Transactions', icon: 'fas fa-wallet', path: '/dashboard/transactions' });
+      items.push({ name: 'Transactions', icon: 'fas fa-wallet', path: '/dashboard/transactions' });
     }
 
     return items;
@@ -78,9 +78,11 @@ const Sidebar = ({ currentUser, isDarkMode, isOpen, onClose, onDeconnexion }) =>
         <div className="sidebar-brand">
           {!isCollapsed && (
             <div className="brand-info">
-              <div className="brand-logo-fallback">
-                <i className="fas fa-clinic-medical"></i>
-              </div>
+              <img 
+                src="/assets/images/logo.png" 
+                alt="Logo PharmaSoin" 
+                style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '10px', backgroundColor: 'rgba(255, 255, 255, 0.1)', padding: '2px' }} 
+              />
               <div>
                 <span className="brand-name">PharmaSoin</span>
                 <small className="brand-role">{getRoleLabel(currentUser?.role)}</small>

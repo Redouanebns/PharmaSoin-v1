@@ -53,9 +53,21 @@ Route::middleware([AuthenticateApiToken::class])->group(function () {
 
         Route::get('/categories', [CategoryController::class, 'index']);
         Route::get('/categories/{id}', [CategoryController::class, 'show']);
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories/{id}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
         Route::get('/fournisseurs', [FournisseurController::class, 'index']);
         Route::get('/fournisseurs/{fournisseur}', [FournisseurController::class, 'show']);
+        Route::post('/fournisseurs', [FournisseurController::class, 'store']);
+        Route::put('/fournisseurs/{fournisseur}', [FournisseurController::class, 'update']);
+        Route::delete('/fournisseurs/{fournisseur}', [FournisseurController::class, 'destroy']);
+
+        Route::get('/commandes', [CommandeController::class, 'index']);
+        Route::post('/commandes', [CommandeController::class, 'store']);
+        Route::get('/commandes/{commande}', [CommandeController::class, 'show']);
+        Route::put('/commandes/{commande}', [CommandeController::class, 'update']);
+        Route::delete('/commandes/{commande}', [CommandeController::class, 'destroy']);
 
         Route::get('/ordonnances', [OrdonnanceController::class, 'index']);
         Route::post('/ordonnances', [OrdonnanceController::class, 'store']);
@@ -75,19 +87,7 @@ Route::middleware([AuthenticateApiToken::class])->group(function () {
     });
 
     Route::middleware([EnsureAdminRole::class])->group(function () {
-        Route::post('/categories', [CategoryController::class, 'store']);
-        Route::put('/categories/{id}', [CategoryController::class, 'update']);
-        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
-        Route::post('/fournisseurs', [FournisseurController::class, 'store']);
-        Route::put('/fournisseurs/{fournisseur}', [FournisseurController::class, 'update']);
-        Route::delete('/fournisseurs/{fournisseur}', [FournisseurController::class, 'destroy']);
-
-        Route::get('/commandes', [CommandeController::class, 'index']);
-        Route::post('/commandes', [CommandeController::class, 'store']);
-        Route::get('/commandes/{commande}', [CommandeController::class, 'show']);
-        Route::put('/commandes/{commande}', [CommandeController::class, 'update']);
-        Route::delete('/commandes/{commande}', [CommandeController::class, 'destroy']);
 
         Route::get('/transactions', [TransactionController::class, 'index']);
         Route::post('/transactions', [TransactionController::class, 'store']);

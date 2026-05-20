@@ -80,12 +80,15 @@ const BarcodeScanner = ({ onDetected, onClose, isOpen }) => {
       const html5Qrcode = new Html5Qrcode(SCANNER_CONTAINER_ID, {
         formatsToSupport: SUPPORTED_FORMATS,
         verbose: false,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true,
+        },
       });
       scannerRef.current = html5Qrcode;
 
-      // Configuration stable (restaurée car l'accélération matérielle/HD plantait sur certains PC)
+      // Configuration optimisée pour la vitesse
       const config = {
-        fps: 15, // 15 fps est le sweet spot pour la stabilité CPU
+        fps: 30, // 30 fps pour une détection beaucoup plus rapide
         aspectRatio: 1.777,
         disableFlip: false,
       };
