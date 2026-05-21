@@ -24,6 +24,17 @@ const getLocalTodayString = () => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
+const addMonthsStr = (dateStr, months) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+  date.setMonth(date.getMonth() + months);
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => {
   const [medicines, setMedicines] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -132,6 +143,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
             dose: medicine.dose || '',
             category_id: medicine.category_id || '',
             price: Number(medicine.prix || 0),
+            expiration_date: medicine.exp ? medicine.exp.split('T')[0] : '',
           };
         }
       }
@@ -179,7 +191,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
             quantity: 1,
             price: Number(medicine.prix || 0),
             lot: '',
-            expiration_date: '',
+            expiration_date: medicine.exp ? medicine.exp.split('T')[0] : '',
             is_manual: false,
           },
         ];
@@ -506,9 +518,12 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                           <label>Date d'expiration</label>
                           <input
                             type="date"
-                            className="cmd-input"
+                            className={!product.is_manual ? "cmd-input cmd-readonly" : "cmd-input"}
                             value={product.expiration_date}
                             onChange={(event) => handleProductChange(index, 'expiration_date', event.target.value)}
+                            disabled={!product.is_manual}
+                            min={product.is_manual ? addMonthsStr(formData.date_livraison_prevue || formData.date_commande || getLocalTodayString(), 2) : undefined}
+                            required
                           />
                         </div>
                       </div>
