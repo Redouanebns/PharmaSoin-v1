@@ -16,6 +16,14 @@ const emptyProduct = () => ({
   is_manual: false,
 });
 
+const getLocalTodayString = () => {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => {
   const [medicines, setMedicines] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -75,7 +83,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
       setFormData({
         numero_commande: `CMD${Math.floor(Math.random() * 9000 + 1000)}`,
         fournisseur_id: '',
-        date_commande: new Date().toISOString().split('T')[0],
+        date_commande: getLocalTodayString(),
         date_livraison_prevue: '',
         montant: 0,
         statut: 'En attente',
@@ -95,7 +103,17 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      let updated = { ...prev, [name]: value };
+
+      if (name === 'date_commande') {
+        if (prev.date_livraison_prevue && prev.date_livraison_prevue < value) {
+          updated.date_livraison_prevue = value;
+        }
+      }
+
+      return updated;
+    });
   };
 
   const handleProductChange = (index, field, value) => {
@@ -245,6 +263,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                 value={formData.date_commande}
                 onChange={handleChange}
                 required
+                min={commande ? (commande.date_commande || '').split('T')[0] : getLocalTodayString()}
                 className="cmd-input"
               />
             </div>
@@ -256,6 +275,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                 value={formData.date_livraison_prevue}
                 onChange={handleChange}
                 required
+                min={formData.date_commande || getLocalTodayString()}
                 className="cmd-input"
               />
             </div>
