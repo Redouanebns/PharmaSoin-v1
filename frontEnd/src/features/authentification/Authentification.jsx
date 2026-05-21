@@ -184,22 +184,22 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
           <div className="auth-feature">
             <i className="fas fa-user-shield"></i>
             <div>
-              <strong>Authentification sécurisée</strong>
-              <p>Connexion par mot de passe hashé et support Google.</p>
+              <strong>Sécurité renforcée</strong>
+              <p>Accès hautement protégé pour vos informations personnelles et médicales.</p>
             </div>
           </div>
           <div className="auth-feature">
             <i className="fas fa-user-tag"></i>
             <div>
-              <strong>Trois rôles</strong>
-              <p>Admin, pharmacien et client avec des espaces dédiés.</p>
+              <strong>Espaces personnalisés</strong>
+              <p>Des interfaces sur mesure pour les clients, pharmaciens et administrateurs.</p>
             </div>
           </div>
           <div className="auth-feature">
-            <i className="fas fa-sliders-h"></i>
+            <i className="fas fa-shipping-fast"></i>
             <div>
-              <strong>Paramètres centralisés</strong>
-              <p>Les réglages du site sont pilotés depuis le backend.</p>
+              <strong>Commandes & Services en ligne</strong>
+              <p>Commandez vos médicaments et suivez vos livraisons en temps réel.</p>
             </div>
           </div>
         </div>
