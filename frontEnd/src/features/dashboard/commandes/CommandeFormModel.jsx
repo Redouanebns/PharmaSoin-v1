@@ -503,9 +503,8 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                             <label>Prix unit. (DH)</label>
                             <input
                               type="number"
-                              className="cmd-input cmd-readonly"
+                              className="cmd-input"
                               value={product.price}
-                              disabled
                               min="0"
                               step="0.01"
                               onChange={(event) => handleProductChange(index, 'price', parseFloat(event.target.value) || 0)}
