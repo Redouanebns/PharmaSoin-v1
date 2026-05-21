@@ -228,3 +228,24 @@ body.dark-mode {
   color: #fb7185 !important;
   border-color: rgba(251, 113, 133, 0.2) !important;
 }
+
+/* ============================================================
+   MODALS GLOBAUX — ASPECT RATIO PAYSAGE (LARGEUR > HAUTEUR)
+   Force les formulaires d'ajout/modification à être plus
+   larges que hauts pour un confort visuel optimal.
+   ============================================================ */
+.modal-content-custom {
+  max-width: 980px !important; /* Largeur généreuse */
+  max-height: min(78vh, 660px) !important; /* Hauteur contenue */
+}
+
+/* Modals avec traductions (encore plus larges) */
+.modal-content-translation {
+  max-width: 1140px !important; 
+}
+
+/* Corps du modal défilable synchronisé avec la hauteur globale */
+.modal-body-custom {
+  max-height: calc(min(78vh, 660px) - 96px) !important;
+  overflow-y: auto !important;
+}
