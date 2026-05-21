@@ -79,11 +79,10 @@ class DashboardController extends Controller
             ->filter(fn (Vente $vente) => $vente->date && Carbon::parse($vente->date)->between($currentMonthStart, $currentMonthEnd))
             ->sum('total');
 
-        $todayOrdonnances = $ordonnances
-            ->filter(fn (Ordonnance $ordonnance) => $ordonnance->date && Carbon::parse($ordonnance->date)->isSameDay($today));
-
-        $dispensedToday = $todayOrdonnances
-            ->filter(fn (Ordonnance $ordonnance) => $ordonnance->statut === 'Dispensée')
+        $dispensedToday = $ordonnances
+            ->filter(fn (Ordonnance $ordonnance) => $ordonnance->statut === 'Dispensée'
+                && $ordonnance->updated_at
+                && Carbon::parse($ordonnance->updated_at)->isSameDay($today))
             ->count();
 
         $deliveryRate = $commandes->count() > 0
