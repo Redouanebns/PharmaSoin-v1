@@ -155,8 +155,18 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
     <div className={`auth-page ${isDarkMode ? 'dark-theme' : ''}`}>
       <div className="auth-left">
         <div className="auth-brand">
-          <div className="auth-brand-mark">
-            <i className="fas fa-clinic-medical"></i>
+          <div className="auth-brand-mark" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img 
+              src="/assets/images/logo.png" 
+              alt="Logo" 
+              style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '18px', padding: '6px' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                const fallbackIcon = document.createElement('i');
+                fallbackIcon.className = 'fas fa-clinic-medical';
+                e.target.parentNode.appendChild(fallbackIcon);
+              }}
+            />
           </div>
           <div>
             <h1>{publicSettings.site_name || 'PharmaSoin'}</h1>
@@ -221,8 +231,18 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
           </div>
 
           <div className="auth-header">
-            <div className="auth-icon">
-              <i className={`fas ${mode === 'login' ? 'fa-lock-open' : 'fa-user-plus'}`}></i>
+            <div className="auth-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <img 
+                src="/assets/images/logo.png" 
+                alt="Logo" 
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '24px', padding: '10px' }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  const fallbackIcon = document.createElement('i');
+                  fallbackIcon.className = `fas ${mode === 'login' ? 'fa-lock-open' : 'fa-user-plus'}`;
+                  e.target.parentNode.appendChild(fallbackIcon);
+                }}
+              />
             </div>
             <h2>{mode === 'login' ? 'Connexion sécurisée' : 'Créer un compte'}</h2>
             <p>
