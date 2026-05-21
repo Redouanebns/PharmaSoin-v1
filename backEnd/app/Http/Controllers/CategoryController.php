@@ -28,7 +28,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'nullable|string',
             'criteria' => 'nullable|string',
             'image_url' => 'nullable|url',
@@ -36,6 +36,8 @@ class CategoryController extends Controller
             'translations.*.name' => 'nullable|string|max:255',
             'translations.*.description' => 'nullable|string',
             'translations.*.criteria' => 'nullable|string',
+        ], [
+            'name.unique' => 'Cette catégorie existe déjà.',
         ]);
 
         if ($validator->fails()) {
@@ -82,7 +84,7 @@ class CategoryController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'sometimes|required|string|max:255|unique:categories,name,' . $id,
             'description' => 'nullable|string',
             'criteria' => 'nullable|string',
             'image_url' => 'nullable|url',
@@ -90,6 +92,8 @@ class CategoryController extends Controller
             'translations.*.name' => 'nullable|string|max:255',
             'translations.*.description' => 'nullable|string',
             'translations.*.criteria' => 'nullable|string',
+        ], [
+            'name.unique' => 'Cette catégorie existe déjà.',
         ]);
 
         if ($validator->fails()) {
@@ -128,9 +132,18 @@ class CategoryController extends Controller
             return response()->json(['message' => 'Catégorie non trouvée'], 404);
         }
 
-        $category->delete();
-
-        return response()->json(['success' => true]);
+        try {
+            $category->delete();
+            return response()->json(['success' => true]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            $errorCode = $e->errorInfo[1];
+            if ($errorCode == 1451) {
+                return response()->json(['message' => 'Cette catégorie ne peut pas être supprimée car elle contient des médicaments.'], 409);
+            }
+            return response()->json(['message' => 'Erreur de base de données lors de la suppression.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Une erreur est survenue lors de la suppression.'], 500);
+        }
     }
 
     private function resolveLocale(Request $request): string

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import api from '../../../services/api';
 import UtilisateurFormModal from './UtilisateurFormModal';
 import './UtilisateursList.css';
@@ -10,6 +11,10 @@ const UtilisateursList = ({ currentUser, isDarkMode }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -47,15 +52,25 @@ const UtilisateursList = ({ currentUser, isDarkMode }) => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
+  const confirmDeleteClick = (user) => {
+    setUserToDelete(user);
+    setDeleteError('');
+    setDeleteModalOpen(true);
+  };
 
+  const executeDelete = async () => {
+    if (!userToDelete) return;
     try {
-      await api.delete(`/users/${id}`);
+      await api.delete(`/users/${userToDelete.id}`);
       await fetchUsers();
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || 'Erreur lors de la suppression de l’utilisateur.');
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message) {
+        setDeleteError(e.response.data.message);
+      } else {
+        setDeleteError('Erreur lors de la suppression.');
+      }
     }
   };
 
@@ -171,7 +186,7 @@ const UtilisateursList = ({ currentUser, isDarkMode }) => {
                         </button>
                         <button 
                           className="btn-delete" 
-                          onClick={() => handleDelete(user.id)} 
+                          onClick={() => confirmDeleteClick(user)} 
                           title="Supprimer"
                           disabled={user.id === 1 || user.id === currentUser?.id}
                         >
@@ -200,6 +215,35 @@ const UtilisateursList = ({ currentUser, isDarkMode }) => {
         user={editingUser}
         currentUser={currentUser}
       />
+
+      {deleteModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="modal-content-custom"
+            style={{ maxWidth: '400px', padding: '24px' }}
+          >
+            <div className="d-flex align-items-center mb-3">
+              <i className="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+              <h4 className="mb-0 text-dark fw-bold">Confirmer la suppression</h4>
+            </div>
+            <p className="text-muted mb-4">Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{userToDelete?.name}</strong> ? Cette action est définitive.</p>
+            
+            {deleteError && (
+              <div className="alert alert-danger py-2 mb-4" style={{ fontSize: '0.9rem' }}>
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {deleteError}
+              </div>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="btn btn-light border">Annuler</button>
+              <button onClick={executeDelete} className="btn btn-danger">Supprimer</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import api from '../../../services/api';
 import PageHero from '../shared/PageHero';
 import FournisseurFormModel from './FournisseurFormModel';
@@ -10,6 +11,10 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [supplierToDelete, setSupplierToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
 
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
@@ -40,15 +45,25 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) return;
+  const confirmDeleteClick = (supplier) => {
+    setSupplierToDelete(supplier);
+    setDeleteError('');
+    setDeleteModalOpen(true);
+  };
 
+  const executeDelete = async () => {
+    if (!supplierToDelete) return;
     try {
-      await api.delete(`/fournisseurs/${id}`);
+      await api.delete(`/fournisseurs/${supplierToDelete.id}`);
       await fetchSuppliers();
-    } catch (err) {
-      console.error(err);
-      alert('Erreur lors de la suppression du fournisseur.');
+      setDeleteModalOpen(false);
+      setSupplierToDelete(null);
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message) {
+        setDeleteError(e.response.data.message);
+      } else {
+        setDeleteError('Erreur lors de la suppression.');
+      }
     }
   };
 
@@ -95,7 +110,6 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
               <tr>
                 <th>Fournisseur</th>
                 <th>Contact</th>
-                <th>Produits</th>
                 <th>Conditions</th>
                 <th>Livraisons</th>
                 <th>Statut</th>
@@ -111,17 +125,7 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
                       <div>{supplier.email}</div>
                       <small>{supplier.telephone}</small>
                     </td>
-                    <td className="supplier-products">
-                      {Array.isArray(supplier.produits) && supplier.produits.length > 0 ? (
-                        supplier.produits.map((product, index) => (
-                          <span key={`${supplier.id}-${index}`} className="product-tag">
-                            {product}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-muted">—</span>
-                      )}
-                    </td>
+
                     <td className="supplier-conditions">{supplier.conditions || '—'}</td>
                     <td className="supplier-livraisons">{supplier.livraisons ?? 0}</td>
                     <td>
@@ -133,7 +137,7 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
                       <button className="btn-edit" onClick={() => handleEdit(supplier)}>
                         <i className="fas fa-edit"></i>
                       </button>
-                      <button className="btn-delete" onClick={() => handleDelete(supplier.id)}>
+                      <button className="btn-delete" onClick={() => confirmDeleteClick(supplier)}>
                         <i className="fas fa-trash"></i>
                       </button>
                     </td>
@@ -141,7 +145,7 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center text-muted py-4">
+                  <td colSpan="6" className="text-center text-muted py-4">
                     Aucun fournisseur disponible.
                   </td>
                 </tr>
@@ -157,6 +161,35 @@ const FournisseurList = ({ isDarkMode, toggleDarkMode }) => {
         onSave={handleSave}
         supplier={editingSupplier}
       />
+
+      {deleteModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="modal-content-custom"
+            style={{ maxWidth: '400px', padding: '24px' }}
+          >
+            <div className="d-flex align-items-center mb-3">
+              <i className="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+              <h4 className="mb-0 text-dark fw-bold">Confirmer la suppression</h4>
+            </div>
+            <p className="text-muted mb-4">Êtes-vous sûr de vouloir supprimer le fournisseur <strong>{supplierToDelete?.nom}</strong> ? Cette action est définitive.</p>
+            
+            {deleteError && (
+              <div className="alert alert-danger py-2 mb-4" style={{ fontSize: '0.9rem' }}>
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {deleteError}
+              </div>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="btn btn-light border">Annuler</button>
+              <button onClick={executeDelete} className="btn btn-danger">Supprimer</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

@@ -184,9 +184,18 @@ class MedicineController extends Controller
             return response()->json(['message' => 'Médicament non trouvé'], 404);
         }
 
-        $medicine->delete();
-
-        return response()->json(['success' => true]);
+        try {
+            $medicine->delete();
+            return response()->json(['success' => true]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            $errorCode = $e->errorInfo[1];
+            if ($errorCode == 1451) {
+                return response()->json(['message' => 'Ce médicament ne peut pas être supprimé car il est lié à des transactions, commandes ou ventes.'], 409);
+            }
+            return response()->json(['message' => 'Erreur de base de données lors de la suppression.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Une erreur est survenue lors de la suppression.'], 500);
+        }
     }
 
     private function resolveLocale(Request $request): string

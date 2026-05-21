@@ -49,22 +49,81 @@
 }
 
 .stock-action-btn {
-  padding: 0.9rem 1.3rem;
+  padding: 0.85rem 1.6rem;
   border: none;
-  border-radius: 0.95rem;
+  border-radius: 14px;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.12);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-.entree-btn { background: linear-gradient(135deg, #059669, #0f766e); color: white; }
-.entree-btn:hover { transform: translateY(-1px); }
-.sortie-btn { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; }
-.sortie-btn:hover { transform: translateY(-1px); }
+.stock-action-btn i {
+  font-size: 1.1rem;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stock-action-btn:active {
+  transform: scale(0.96);
+}
+
+.stock-action-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-25deg);
+  animation: none;
+}
+
+.stock-action-btn:hover::after {
+  animation: shimmer-btn 1.5s infinite;
+}
+
+@keyframes shimmer-btn {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+.entree-btn { 
+  background-color: #10b981; 
+  color: white; 
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.entree-btn:hover { 
+  transform: translateY(-3px); 
+  box-shadow: 0 12px 20px -4px rgba(16, 185, 129, 0.4), 0 4px 8px -2px rgba(16, 185, 129, 0.2);
+  background-color: #059669;
+}
+
+.entree-btn:hover i {
+  transform: rotate(15deg) scale(1.15);
+}
+
+.sortie-btn { 
+  background-color: #f43f5e; 
+  color: white; 
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.sortie-btn:hover { 
+  transform: translateY(-3px); 
+  box-shadow: 0 12px 20px -4px rgba(225, 29, 72, 0.4), 0 4px 8px -2px rgba(225, 29, 72, 0.2);
+  background-color: #e11d48;
+}
+
+.sortie-btn:hover i {
+  transform: rotate(-15deg) scale(1.15);
+}
 
 .alerte-total-badge {
   background: #fef3c7;

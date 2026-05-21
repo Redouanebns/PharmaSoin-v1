@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import api from '../../../services/api';
 import PageHero from '../shared/PageHero';
 import CommandeFormModel from './CommandeFormModel';
@@ -11,6 +12,10 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCommande, setEditingCommande] = useState(null);
+  
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [commandeToDelete, setCommandeToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -42,15 +47,25 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')) return;
+  const confirmDeleteClick = (commande) => {
+    setCommandeToDelete(commande);
+    setDeleteError('');
+    setDeleteModalOpen(true);
+  };
 
+  const executeDelete = async () => {
+    if (!commandeToDelete) return;
     try {
-      await api.delete(`/commandes/${id}`);
+      await api.delete(`/commandes/${commandeToDelete.id}`);
       await fetchData();
-    } catch (err) {
-      console.error(err);
-      alert('Erreur lors de la suppression de la commande.');
+      setDeleteModalOpen(false);
+      setCommandeToDelete(null);
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message) {
+        setDeleteError(e.response.data.message);
+      } else {
+        setDeleteError('Erreur lors de la suppression.');
+      }
     }
   };
 
@@ -168,7 +183,7 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
                     <button className="edit-btn" onClick={() => handleEdit(commande)}>
                       <i className="fas fa-edit"></i>
                     </button>
-                    <button className="delete-btn" onClick={() => handleDelete(commande.id)}>
+                    <button className="delete-btn" onClick={() => confirmDeleteClick(commande)}>
                       <i className="fas fa-trash"></i>
                     </button>
                   </td>
@@ -192,6 +207,35 @@ const CommandesList = ({ isDarkMode, toggleDarkMode }) => {
         commande={editingCommande}
         suppliers={suppliers}
       />
+
+      {deleteModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="modal-content-custom"
+            style={{ maxWidth: '400px', padding: '24px' }}
+          >
+            <div className="d-flex align-items-center mb-3">
+              <i className="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+              <h4 className="mb-0 text-dark fw-bold">Confirmer la suppression</h4>
+            </div>
+            <p className="text-muted mb-4">Êtes-vous sûr de vouloir supprimer la commande <strong>{commandeToDelete?.numero_commande}</strong> ? Cette action est définitive.</p>
+            
+            {deleteError && (
+              <div className="alert alert-danger py-2 mb-4" style={{ fontSize: '0.9rem' }}>
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {deleteError}
+              </div>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="btn btn-light border">Annuler</button>
+              <button onClick={executeDelete} className="btn btn-danger">Supprimer</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

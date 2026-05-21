@@ -101,12 +101,21 @@ class CommandeController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($commande) {
-            $commande->transactions()->delete();
-            $commande->delete();
-        });
-
-        return response()->json(['success' => true]);
+        try {
+            DB::transaction(function () use ($commande) {
+                $commande->transactions()->delete();
+                $commande->delete();
+            });
+            return response()->json(['success' => true]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            $errorCode = $e->errorInfo[1];
+            if ($errorCode == 1451) {
+                return response()->json(['message' => 'Cette commande ne peut pas être supprimée car elle est liée à d’autres enregistrements.'], 409);
+            }
+            return response()->json(['message' => 'Erreur de base de données lors de la suppression.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Une erreur est survenue lors de la suppression.'], 500);
+        }
     }
 
     private function normalizeProducts(array $products): array

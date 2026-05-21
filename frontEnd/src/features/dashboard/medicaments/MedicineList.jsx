@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'motion/react';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
 import { Clock, Sun, Moon } from 'lucide-react';
@@ -90,11 +91,16 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
   const [clock, setClock] = useState('00:00:00');
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [medicineToDelete, setMedicineToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   const { currentLanguage } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef(null);
@@ -157,6 +163,17 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
     });
   }, [medicines, searchTerm, categoryFilter, statusFilter]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, categoryFilter, statusFilter]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredMedicines.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredMedicines.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   const activeCategoryName = useMemo(
     () => categoryOptions.find((category) => category.id === String(categoryFilter))?.name || '',
     [categoryFilter, categoryOptions],
@@ -172,14 +189,25 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Supprimer ce médicament ?')) return;
+  const confirmDeleteClick = (medicine) => {
+    setMedicineToDelete(medicine);
+    setDeleteError('');
+    setDeleteModalOpen(true);
+  };
 
+  const executeDelete = async () => {
+    if (!medicineToDelete) return;
     try {
-      await api.delete(`/medicaments/${id}`);
+      await api.delete(`/medicaments/${medicineToDelete.id}`);
       await fetchMedicines();
-    } catch (deleteError) {
-      alert('Erreur lors de la suppression.');
+      setDeleteModalOpen(false);
+      setMedicineToDelete(null);
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message) {
+        setDeleteError(e.response.data.message);
+      } else {
+        setDeleteError('Erreur lors de la suppression.');
+      }
     }
   };
 
@@ -194,7 +222,12 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
       await fetchMedicines();
     } catch (saveError) {
       console.error(saveError);
-      alert(`Erreur lors de la sauvegarde : ${saveError.response?.data?.message || saveError.message}`);
+      if (saveError.response?.data?.errors) {
+        const errors = Object.values(saveError.response.data.errors).flat().join('\n');
+        alert(`Erreurs de validation :\n${errors}`);
+      } else {
+        alert(`Erreur lors de la sauvegarde : ${saveError.response?.data?.message || saveError.message}`);
+      }
     }
   };
 
@@ -360,14 +393,14 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
                     {error}
                   </td>
                 </tr>
-              ) : filteredMedicines.length === 0 ? (
+              ) : currentItems.length === 0 ? (
                 <tr>
                   <td colSpan="11" className="text-center text-muted py-5">
                     Aucun résultat trouvé.
                   </td>
                 </tr>
               ) : (
-                filteredMedicines.map((medicine) => (
+                currentItems.map((medicine) => (
                   <tr key={medicine.id}>
                     <td className="text-center">
                       <img
@@ -452,7 +485,7 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
                         <button className="action-btn edit-btn" onClick={() => handleEdit(medicine)} title="Modifier">
                           <i className="fas fa-edit"></i>
                         </button>
-                        <button className="action-btn delete-btn" onClick={() => handleDelete(medicine.id)} title="Supprimer">
+                        <button className="action-btn delete-btn" onClick={() => confirmDeleteClick(medicine)} title="Supprimer">
                           <i className="fas fa-trash-alt"></i>
                         </button>
                       </div>
@@ -463,6 +496,32 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="d-flex justify-content-center mt-4 mb-2">
+            <nav>
+              <ul className="pagination mb-0">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
+                    Précédent
+                  </button>
+                </li>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                  <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+                    <button className="page-link" onClick={() => paginate(number)}>
+                      {number}
+                    </button>
+                  </li>
+                ))}
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>
+                    Suivant
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        )}
       </div>
 
       <MedicineFormModal
@@ -471,6 +530,35 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
         onSave={handleSaveMedicine}
         initialData={editingMedicine}
       />
+
+      {deleteModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="modal-content-custom"
+            style={{ maxWidth: '400px', padding: '24px' }}
+          >
+            <div className="d-flex align-items-center mb-3">
+              <i className="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+              <h4 className="mb-0 text-dark fw-bold">Confirmer la suppression</h4>
+            </div>
+            <p className="text-muted mb-4">Êtes-vous sûr de vouloir supprimer le médicament <strong>{medicineToDelete?.nom}</strong> ? Cette action est définitive.</p>
+            
+            {deleteError && (
+              <div className="alert alert-danger py-2 mb-4" style={{ fontSize: '0.9rem' }}>
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {deleteError}
+              </div>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="btn btn-light border">Annuler</button>
+              <button onClick={executeDelete} className="btn btn-danger">Supprimer</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

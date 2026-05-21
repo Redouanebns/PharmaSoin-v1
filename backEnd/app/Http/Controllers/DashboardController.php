@@ -10,6 +10,7 @@ use App\Models\Ordonnance;
 use App\Models\StockMovement;
 use App\Models\Transaction;
 use App\Models\SiteSetting;
+use App\Models\User;
 use App\Models\Vente;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -18,8 +19,9 @@ use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
-    public function summary(): JsonResponse
+    public function summary(Request $request): JsonResponse
     {
+        $period = $request->query('period', 'semaine');
         $today = Carbon::today();
         $currentMonthStart = $today->copy()->startOfMonth();
         $currentMonthEnd = $today->copy()->endOfMonth();
@@ -92,25 +94,52 @@ class DashboardController extends Controller
             ? round(($availableMedicines->count() / $medicines->count()) * 100, 1)
             : 0;
 
-        $salesTrend = collect(range(6, 0))
-            ->map(function (int $offset) use ($today, $completedSales) {
-                $date = $today->copy()->subDays($offset);
-                $dailySales = $completedSales->filter(
-                    fn (Vente $vente) => $vente->date && Carbon::parse($vente->date)->isSameDay($date)
-                );
+        $startDate = match ($period) {
+            'jour' => $today->copy(),
+            'mois' => $today->copy()->subDays(29),
+            'annee' => $today->copy()->subMonths(11)->startOfMonth(),
+            default => $today->copy()->subDays(6),
+        };
 
-                return [
-                    'name' => $date->locale('fr')->translatedFormat('D'),
-                    'date' => $date->format('Y-m-d'),
-                    'sales' => round((float) $dailySales->sum('total'), 2),
-                    'orders' => $dailySales->count(),
-                ];
-            })
-            ->values();
+        $buildTrend = function ($collection, $dateField) use ($today, $period) {
+            if ($period === 'jour') {
+                return collect(range(0, 23))->map(function (int $hour) use ($today, $collection, $dateField) {
+                    $start = $today->copy()->addHours($hour);
+                    $end = $start->copy()->addHour();
+                    $items = $collection->filter(fn ($item) => $item->$dateField && Carbon::parse($item->$dateField)->between($start, $end));
+                    return ['name' => $start->format('H:i'), 'date' => $start->format('Y-m-d H:i'), 'sales' => round((float)$items->sum('total'), 2), 'orders' => $items->count(), 'users' => $items->count()];
+                })->values();
+            } elseif ($period === 'mois') {
+                return collect(range(29, 0))->map(function (int $offset) use ($today, $collection, $dateField) {
+                    $date = $today->copy()->subDays($offset);
+                    $items = $collection->filter(fn ($item) => $item->$dateField && Carbon::parse($item->$dateField)->isSameDay($date));
+                    return ['name' => $date->format('d/m'), 'date' => $date->format('Y-m-d'), 'sales' => round((float)$items->sum('total'), 2), 'orders' => $items->count(), 'users' => $items->count()];
+                })->values();
+            } elseif ($period === 'annee') {
+                return collect(range(11, 0))->map(function (int $offset) use ($today, $collection, $dateField) {
+                    $date = $today->copy()->subMonths($offset)->startOfMonth();
+                    $items = $collection->filter(fn ($item) => $item->$dateField && Carbon::parse($item->$dateField)->format('Y-m') === $date->format('Y-m'));
+                    return ['name' => $date->locale('fr')->translatedFormat('M Y'), 'date' => $date->format('Y-m'), 'sales' => round((float)$items->sum('total'), 2), 'orders' => $items->count(), 'users' => $items->count()];
+                })->values();
+            } else {
+                return collect(range(6, 0))->map(function (int $offset) use ($today, $collection, $dateField) {
+                    $date = $today->copy()->subDays($offset);
+                    $items = $collection->filter(fn ($item) => $item->$dateField && Carbon::parse($item->$dateField)->isSameDay($date));
+                    return ['name' => $date->locale('fr')->translatedFormat('D'), 'date' => $date->format('Y-m-d'), 'sales' => round((float)$items->sum('total'), 2), 'orders' => $items->count(), 'users' => $items->count()];
+                })->values();
+            }
+        };
+
+        $users = User::all();
+        $salesTrend = $buildTrend($completedSales, 'date');
+        $onlineSalesTrend = $buildTrend($onlineOrders->filter(fn ($v) => in_array($v->statut, ['Complétée', 'Payée'])), 'date');
+        $usersTrend = $buildTrend($users, 'created_at');
+
+        $periodVentes = $ventes->filter(fn (Vente $vente) => $vente->date && Carbon::parse($vente->date)->gte($startDate));
 
         $topProducts = $medicines
-            ->map(function (Medicine $medicine) use ($ventes) {
-                $soldUnits = $ventes->flatMap->items
+            ->map(function (Medicine $medicine) use ($periodVentes) {
+                $soldUnits = $periodVentes->flatMap->items
                     ->where('medicine_id', $medicine->id)
                     ->sum('qte');
 
@@ -124,21 +153,6 @@ class DashboardController extends Controller
             })
             ->sortByDesc('value')
             ->take(5)
-            ->values();
-
-        $seasonality = collect(range(1, 12))
-            ->map(function (int $month) use ($completedSales, $startOfYear) {
-                $date = $startOfYear->copy()->month($month);
-                $monthlySales = $completedSales->filter(
-                    fn (Vente $vente) => $vente->date && Carbon::parse($vente->date)->year === $date->year && Carbon::parse($vente->date)->month === $month
-                );
-
-                return [
-                    'month' => $date->locale('fr')->translatedFormat('M'),
-                    'sales' => round((float) $monthlySales->sum('total'), 2),
-                    'orders' => $monthlySales->count(),
-                ];
-            })
             ->values();
 
         $confirmedTransactions = $transactions->filter(fn (Transaction $transaction) => $transaction->statut === 'Confirmée');
@@ -241,7 +255,8 @@ class DashboardController extends Controller
             'charts' => [
                 'salesTrend' => $salesTrend,
                 'topProducts' => $topProducts,
-                'seasonality' => $seasonality,
+                'onlineSalesTrend' => $onlineSalesTrend,
+                'usersTrend' => $usersTrend,
             ],
             'alerts' => $alerts,
             'insights' => $insights,

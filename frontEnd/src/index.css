@@ -119,7 +119,6 @@ body.dark-mode {
 .delete-btn,
 .vedit-btn,
 .vdelete-btn,
-.stock-action-btn,
 .vaction-btn,
 .btn-edit,
 .btn-delete {
@@ -185,7 +184,6 @@ body.dark-mode {
 .delete-btn i,
 .vedit-btn i,
 .vdelete-btn i,
-.stock-action-btn i,
 .vaction-btn i,
 .btn-edit i,
 .btn-delete i {
@@ -198,7 +196,6 @@ body.dark-mode {
 .delete-btn:hover i,
 .vedit-btn:hover i,
 .vdelete-btn:hover i,
-.stock-action-btn:hover i,
 .vaction-btn:hover i,
 .btn-edit:hover i,
 .btn-delete:hover i {

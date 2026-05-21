@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { motion } from 'motion/react';
 import { ArrowDownCircle, ArrowUpCircle, Edit, Filter, Plus, ReceiptText, Search, Trash2, Wallet } from 'lucide-react';
 import api from '../../../services/api';
 import TransactionFormModal from './TransactionFormModal';
@@ -28,6 +29,10 @@ const TransactionsList = ({ isDarkMode, toggleDarkMode }) => {
   const [statusFilter, setStatusFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -86,20 +91,29 @@ const TransactionsList = ({ isDarkMode, toggleDarkMode }) => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (transaction) => {
+  const confirmDeleteClick = (transaction) => {
     if (transaction.source !== 'manual') {
       window.alert('Les transactions automatiques ne peuvent pas être supprimées ici.');
       return;
     }
+    setTransactionToDelete(transaction);
+    setDeleteError('');
+    setDeleteModalOpen(true);
+  };
 
-    if (!window.confirm('Supprimer cette transaction manuelle ?')) return;
-
+  const executeDelete = async () => {
+    if (!transactionToDelete) return;
     try {
-      await api.delete(`/transactions/${transaction.id}`);
+      await api.delete(`/transactions/${transactionToDelete.id}`);
       await fetchTransactions();
-    } catch (err) {
-      console.error(err);
-      window.alert('Erreur lors de la suppression de la transaction.');
+      setDeleteModalOpen(false);
+      setTransactionToDelete(null);
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message) {
+        setDeleteError(e.response.data.message);
+      } else {
+        setDeleteError('Erreur lors de la suppression.');
+      }
     }
   };
 
@@ -270,7 +284,7 @@ const TransactionsList = ({ isDarkMode, toggleDarkMode }) => {
                           <button className="table-icon-btn edit" onClick={() => openEdit(transaction)} title="Modifier">
                             <Edit size={16} />
                           </button>
-                          <button className="table-icon-btn delete" onClick={() => handleDelete(transaction)} title="Supprimer">
+                          <button className="table-icon-btn delete" onClick={() => confirmDeleteClick(transaction)} title="Supprimer">
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -296,6 +310,35 @@ const TransactionsList = ({ isDarkMode, toggleDarkMode }) => {
         transaction={editingTransaction}
         isSaving={saving}
       />
+
+      {deleteModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="modal-content-custom"
+            style={{ maxWidth: '400px', padding: '24px' }}
+          >
+            <div className="d-flex align-items-center mb-3">
+              <i className="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+              <h4 className="mb-0 text-dark fw-bold">Confirmer la suppression</h4>
+            </div>
+            <p className="text-muted mb-4">Êtes-vous sûr de vouloir supprimer la transaction <strong>{transactionToDelete?.reference}</strong> ? Cette action est définitive.</p>
+            
+            {deleteError && (
+              <div className="alert alert-danger py-2 mb-4" style={{ fontSize: '0.9rem' }}>
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {deleteError}
+              </div>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="btn btn-light border">Annuler</button>
+              <button onClick={executeDelete} className="btn btn-danger">Supprimer</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

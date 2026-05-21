@@ -68,8 +68,17 @@ class FournisseurController extends Controller
      */
     public function destroy(Fournisseur $fournisseur)
     {
-        $fournisseur->delete();
-
-        return response()->json(null, 204);
+        try {
+            $fournisseur->delete();
+            return response()->json(['success' => true]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            $errorCode = $e->errorInfo[1];
+            if ($errorCode == 1451) {
+                return response()->json(['message' => 'Ce fournisseur ne peut pas être supprimé car il est lié à des commandes.'], 409);
+            }
+            return response()->json(['message' => 'Erreur de base de données lors de la suppression.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Une erreur est survenue lors de la suppression.'], 500);
+        }
     }
 }

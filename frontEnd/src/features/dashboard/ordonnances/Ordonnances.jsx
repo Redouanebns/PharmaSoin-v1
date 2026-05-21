@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { motion } from 'motion/react';
 import { Plus, Search, Edit, Trash2, FileText, Clock, Moon, Sun, Loader2 } from 'lucide-react';
 import api from '../../../services/api';
 import OrdonnanceFormModal from './OrdonnanceFormModal';
@@ -14,6 +15,10 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [ordonnanceToDelete, setOrdonnanceToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -48,16 +53,25 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Voulez-vous vraiment supprimer cette ordonnance ?')) return;
+  const confirmDeleteClick = (ordonnance) => {
+    setOrdonnanceToDelete(ordonnance);
+    setDeleteError('');
+    setDeleteModalOpen(true);
+  };
 
+  const executeDelete = async () => {
+    if (!ordonnanceToDelete) return;
     try {
-      setError('');
-      await api.delete(`/ordonnances/${id}`);
-      setOrdonnances((prev) => prev.filter((item) => item.id !== id));
-    } catch (err) {
-      console.error(err);
-      setError('Suppression impossible.');
+      await api.delete(`/ordonnances/${ordonnanceToDelete.id}`);
+      setOrdonnances((prev) => prev.filter((item) => item.id !== ordonnanceToDelete.id));
+      setDeleteModalOpen(false);
+      setOrdonnanceToDelete(null);
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message) {
+        setDeleteError(e.response.data.message);
+      } else {
+        setDeleteError('Erreur lors de la suppression.');
+      }
     }
   };
 
@@ -188,7 +202,7 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
                         <button className="action-btn edit" onClick={() => handleEdit(ordonnance)}>
                           <Edit size={18} />
                         </button>
-                        <button className="action-btn delete" onClick={() => handleDelete(ordonnance.id)}>
+                        <button className="action-btn delete" onClick={() => confirmDeleteClick(ordonnance)}>
                           <Trash2 size={18} />
                         </button>
                       </td>
@@ -220,6 +234,35 @@ const Ordonnances = ({ isDarkMode, toggleDarkMode }) => {
           initialData={currentOrdonnance}
           isSaving={saving}
         />
+      )}
+
+      {deleteModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="modal-content-custom"
+            style={{ maxWidth: '400px', padding: '24px' }}
+          >
+            <div className="d-flex align-items-center mb-3">
+              <i className="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+              <h4 className="mb-0 text-dark fw-bold">Confirmer la suppression</h4>
+            </div>
+            <p className="text-muted mb-4">Êtes-vous sûr de vouloir supprimer l'ordonnance <strong>{ordonnanceToDelete?.numero}</strong> ? Cette action est définitive.</p>
+            
+            {deleteError && (
+              <div className="alert alert-danger py-2 mb-4" style={{ fontSize: '0.9rem' }}>
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {deleteError}
+              </div>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="btn btn-light border">Annuler</button>
+              <button onClick={executeDelete} className="btn btn-danger">Supprimer</button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );

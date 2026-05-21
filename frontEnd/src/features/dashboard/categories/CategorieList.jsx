@@ -20,6 +20,9 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [clock, setClock] = useState('00:00:00');
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   const { currentLanguage } = useLanguage();
   const navigate = useNavigate();
 
@@ -73,15 +76,26 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteCategory = async (event, id) => {
+  const confirmDeleteClick = (event, category) => {
     event.stopPropagation();
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
+    setCategoryToDelete(category);
+    setDeleteError('');
+    setDeleteModalOpen(true);
+  };
 
+  const executeDelete = async () => {
+    if (!categoryToDelete) return;
     try {
-      await api.delete(`/categories/${id}`);
+      await api.delete(`/categories/${categoryToDelete.id}`);
       await fetchCategories();
-    } catch (error) {
-      alert('Erreur lors de la suppression.');
+      setDeleteModalOpen(false);
+      setCategoryToDelete(null);
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message) {
+        setDeleteError(e.response.data.message);
+      } else {
+        setDeleteError('Erreur lors de la suppression.');
+      }
     }
   };
 
@@ -94,8 +108,16 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
       }
       setIsModalOpen(false);
       await fetchCategories();
-    } catch (error) {
-      alert('Erreur lors de la sauvegarde.');
+    } catch (e) {
+      console.error(e);
+      if (e.response && e.response.data && e.response.data.errors) {
+        const errors = Object.values(e.response.data.errors).flat().join('\n');
+        alert(`Erreurs de validation :\n${errors}`);
+      } else if (e.response && e.response.data && e.response.data.message) {
+        alert(`Erreur lors de la sauvegarde : ${e.response.data.message}`);
+      } else {
+        alert('Erreur lors de la sauvegarde.');
+      }
     }
   };
 
@@ -202,7 +224,7 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
                         <button onClick={(event) => handleEditCategory(event, category)} className="action-btn edit-btn" title="Modifier">
                           <i className="fas fa-edit"></i>
                         </button>
-                        <button onClick={(event) => handleDeleteCategory(event, category.id)} className="action-btn delete-btn" title="Supprimer">
+                        <button onClick={(event) => confirmDeleteClick(event, category)} className="action-btn delete-btn" title="Supprimer">
                           <i className="fas fa-trash-alt"></i>
                         </button>
                       </div>
@@ -221,6 +243,35 @@ const CategorieList = ({ isDarkMode, toggleDarkMode }) => {
         onSave={handleSaveCategory}
         initialData={editingCategory}
       />
+
+      {deleteModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="modal-content-custom"
+            style={{ maxWidth: '400px', padding: '24px' }}
+          >
+            <div className="d-flex align-items-center mb-3">
+              <i className="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+              <h4 className="mb-0 text-dark fw-bold">Confirmer la suppression</h4>
+            </div>
+            <p className="text-muted mb-4">Êtes-vous sûr de vouloir supprimer la catégorie <strong>{categoryToDelete?.name}</strong> ? Cette action est définitive.</p>
+            
+            {deleteError && (
+              <div className="alert alert-danger py-2 mb-4" style={{ fontSize: '0.9rem' }}>
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {deleteError}
+              </div>
+            )}
+
+            <div className="d-flex justify-content-end gap-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="btn btn-light border">Annuler</button>
+              <button onClick={executeDelete} className="btn btn-danger">Supprimer</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

@@ -282,10 +282,6 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
                 </div>
               </div>
 
-              <div className="auth-demo-accounts">
-                <span>Comptes de démonstration :</span>
-                <small>admin@pharmacy.test · pharmacien@pharmacy.test · client@pharmacy.test</small>
-              </div>
 
               <button type="submit" className="btn-auth-submit" disabled={loading}>
                 {loading ? <><span className="spinner-border spinner-border-sm me-2"></span>Connexion...</> : 'Se connecter'}

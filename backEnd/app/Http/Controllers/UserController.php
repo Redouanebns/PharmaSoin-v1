@@ -102,10 +102,19 @@ class UserController extends Controller
             return response()->json(['message' => 'Vous ne pouvez pas supprimer votre propre compte'], 403);
         }
 
-        $user->delete();
-
-        return response()->json([
-            'message' => 'Utilisateur supprimé avec succès'
-        ]);
+        try {
+            $user->delete();
+            return response()->json([
+                'message' => 'Utilisateur supprimé avec succès'
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            $errorCode = $e->errorInfo[1];
+            if ($errorCode == 1451) {
+                return response()->json(['message' => 'Cet utilisateur ne peut pas être supprimé car il est lié à d’autres enregistrements.'], 409);
+            }
+            return response()->json(['message' => 'Erreur de base de données lors de la suppression.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Une erreur est survenue lors de la suppression.'], 500);
+        }
     }
 }

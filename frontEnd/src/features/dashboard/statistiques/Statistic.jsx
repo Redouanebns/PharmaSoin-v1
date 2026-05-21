@@ -80,17 +80,12 @@ const buildStatisticsCsv = (summary, currentUser) => {
     lines.push([escapeCsv('Graphiques'), escapeCsv('topProducts'), escapeCsv(item.value), escapeCsv(`${item.name} · ${item.sold} unité(s) · Stock ${item.stock}`)].join(';'));
   });
 
-  (summary.charts?.seasonality || []).forEach((item) => {
-    lines.push([escapeCsv('Graphiques'), escapeCsv('seasonality'), escapeCsv(item.sales), escapeCsv(`${item.month} · ${item.orders} commande(s)`) ].join(';'));
-  });
+
 
   (summary.alerts || []).forEach((alert, index) => {
     lines.push([escapeCsv('Alertes'), escapeCsv(`alerte_${index + 1}`), escapeCsv(alert?.type || 'info'), escapeCsv(alert?.label || '')].join(';'));
   });
 
-  (summary.insights || []).forEach((insight, index) => {
-    lines.push([escapeCsv('Insights'), escapeCsv(`insight_${index + 1}`), escapeCsv(insight?.icon || ''), escapeCsv(insight?.text || '')].join(';'));
-  });
 
   return lines.join('\n');
 };
@@ -102,11 +97,13 @@ const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [exportFeedback, setExportFeedback] = useState('');
 
+  const [period, setPeriod] = useState('semaine');
+
   const fetchSummary = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await api.get('/dashboard/summary');
+      const response = await api.get('/dashboard/summary', { params: { period } });
       setSummary({ ...defaultSummary, ...(response.data || {}) });
     } catch (fetchError) {
       console.error(fetchError);
@@ -115,11 +112,20 @@ const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [period]);
 
   useEffect(() => {
     fetchSummary();
   }, [fetchSummary]);
+
+  const getPeriodLabel = (p) => {
+    switch (p) {
+      case 'jour': return "Aujourd'hui (24h)";
+      case 'mois': return '30 derniers jours';
+      case 'annee': return '12 derniers mois';
+      default: return '7 derniers jours';
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -130,9 +136,10 @@ const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
   const meta = summary.meta || defaultSummary.meta;
   const salesTrend = useMemo(() => summary.charts?.salesTrend || [], [summary]);
   const topProducts = useMemo(() => summary.charts?.topProducts || [], [summary]);
-  const seasonality = useMemo(() => summary.charts?.seasonality || [], [summary]);
+  const onlineSalesTrend = useMemo(() => summary.charts?.onlineSalesTrend || [], [summary]);
+  const usersTrend = useMemo(() => summary.charts?.usersTrend || [], [summary]);
   const alerts = useMemo(() => summary.alerts || [], [summary]);
-  const insights = useMemo(() => summary.insights || [], [summary]);
+
 
   const handleExport = () => {
     const csv = buildStatisticsCsv(summary, currentUser);
@@ -164,6 +171,16 @@ const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
             <Clock size={18} className="me-2" />
             <span>{currentTime.toLocaleTimeString()}</span>
           </div>
+          <select 
+            className="form-select w-auto me-2" 
+            value={period} 
+            onChange={(e) => setPeriod(e.target.value)}
+          >
+            <option value="jour">Jour</option>
+            <option value="semaine">Semaine</option>
+            <option value="mois">Mois</option>
+            <option value="annee">Année</option>
+          </select>
           <button onClick={handleExport} className="export-btn" type="button">
             <FileSpreadsheet size={18} />
             Exporter
@@ -203,8 +220,7 @@ const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
       <div className="charts-row">
         <div className="chart-container main-chart">
           <div className="chart-header">
-            <h4>Tendance des commandes (7 derniers jours)</h4>
-            <span className="text-muted small">Données Laravel synchronisées</span>
+            <h4>Tendance des commandes ({getPeriodLabel(period)})</h4>
           </div>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={300}>
@@ -221,7 +237,7 @@ const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
 
         <div className="chart-container side-chart">
           <div className="chart-header">
-            <h4>Top produits par valeur</h4>
+            <h4>Top produits par valeur ({getPeriodLabel(period)})</h4>
           </div>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={300}>
@@ -248,53 +264,52 @@ const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
         </div>
 
         <div className="analysis-grid">
-          <div className="analysis-card seasonality">
+          <div className="analysis-card">
             <div className="card-header-flex">
-              <h4>Activité mensuelle des commandes</h4>
-              <Calendar size={16} className="text-muted" />
+              <h4>Tendance des ventes en ligne</h4>
+              <ShoppingBag size={16} className="text-muted" />
             </div>
             <div className="chart-wrapper-small">
               <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={seasonality}>
+                <AreaChart data={onlineSalesTrend}>
                   <defs>
-                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#009688" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#009688" stopOpacity={0} />
+                    <linearGradient id="colorOnline" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3498db" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3498db" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f2f6" />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                   <YAxis hide />
-                  <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} DH`, 'Montant']} />
-                  <Area type="monotone" dataKey="sales" stroke="#009688" fillOpacity={1} fill="url(#colorSales)" />
+                  <Tooltip formatter={(value) => [`${Number(value).toLocaleString('fr-FR')} DH`, 'Ventes web']} />
+                  <Area type="monotone" dataKey="sales" stroke="#3498db" fillOpacity={1} fill="url(#colorOnline)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             <p className="analysis-note">
-              <strong>{meta.commandes}</strong> commande(s) fournisseur, <strong>{meta.onlineOrders || 0}</strong> commande(s) web, <strong>{meta.deliveryRate}%</strong> de taux de livraison.
+              Tendance des ventes en ligne ({getPeriodLabel(period)})
             </p>
           </div>
 
-          <div className="analysis-card insights">
+          <div className="analysis-card">
             <div className="card-header-flex">
-              <h4>Insights API</h4>
-              <Zap size={16} className="text-warning" />
+              <h4>Nouveaux utilisateurs</h4>
+              <FileText size={16} className="text-muted" />
             </div>
-            <ul className="insights-list">
-              {insights.length > 0 ? (
-                insights.map((insight, index) => (
-                  <li key={`${insight.icon}-${index}`}>
-                    <span className="insight-icon">{insight.icon}</span>
-                    <p>{insight.text}</p>
-                  </li>
-                ))
-              ) : (
-                <li>
-                  <span className="insight-icon">ℹ️</span>
-                  <p>Aucun insight disponible pour le moment.</p>
-                </li>
-              )}
-            </ul>
+            <div className="chart-wrapper-small">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={usersTrend}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f2f6" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <YAxis hide />
+                  <Tooltip formatter={(value) => [value, 'Inscriptions']} />
+                  <Bar dataKey="users" fill="#8e44ad" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="analysis-note">
+              Inscriptions d'utilisateurs ({getPeriodLabel(period)})
+            </p>
           </div>
         </div>
       </div>
@@ -318,19 +333,7 @@ const Statistics = ({ currentUser, isDarkMode, toggleDarkMode }) => {
           </div>
         </div>
 
-        <div className="reports-section">
-          <h4>Résumé opérationnel</h4>
-          <p>Toutes les cartes et les graphiques sont alimentés par l’API backend.</p>
-          <div className="reports-actions flex-column align-items-start gap-3">
-            <div className="d-flex align-items-center gap-2"><Pill size={18} /><span>{meta.medicines} médicament(s)</span></div>
-            <div className="d-flex align-items-center gap-2"><ShoppingBag size={18} /><span>{meta.categories} catégorie(s)</span></div>
-            <div className="d-flex align-items-center gap-2"><Truck size={18} /><span>{meta.pendingCommandes} commande(s) fournisseur en attente</span></div>
-            <div className="d-flex align-items-center gap-2"><Truck size={18} /><span>{meta.pendingOnlineOrders || 0} commande(s) web en attente</span></div>
-            <div className="d-flex align-items-center gap-2"><Package size={18} /><span>{meta.lowStockMedicines} produit(s) à stock faible</span></div>
-            <div className="d-flex align-items-center gap-2"><FileText size={18} /><span>{meta.ordonnances} ordonnance(s)</span></div>
-            <div className="d-flex align-items-center gap-2"><FileSpreadsheet size={18} /><span>{meta.expiredMedicines} produit(s) expiré(s)</span></div>
-          </div>
-        </div>
+
       </div>
     </div>
   );
