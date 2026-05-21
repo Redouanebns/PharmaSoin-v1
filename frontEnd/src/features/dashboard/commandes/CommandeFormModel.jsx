@@ -427,6 +427,8 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                                     handleProductChange(index, 'code', '');
                                     handleProductChange(index, 'dose', '');
                                     handleProductChange(index, 'category_id', '');
+                                    handleProductChange(index, 'price', 0);
+                                    handleProductChange(index, 'expiration_date', '');
                                   }}
                                   style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.55rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', color: '#475569', fontWeight: '700', transition: 'all 0.2s', height: '38px' }}
                                 >
@@ -458,6 +460,8 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                                     handleProductChange(index, 'code', '');
                                     handleProductChange(index, 'dose', '');
                                     handleProductChange(index, 'category_id', '');
+                                    handleProductChange(index, 'price', 0);
+                                    handleProductChange(index, 'expiration_date', '');
                                   }}
                                   style={{ background: '#0f766e', color: 'white', border: 'none', padding: '0.55rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', fontWeight: '700', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(15,118,110,0.15)' }}
                                   title="Saisir un nouveau médicament qui n'existe pas dans le catalogue"
@@ -480,7 +484,9 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                         )}
                       </div>
 
-                      <div className="cmd-product-row-bottom">
+                      <div className="cmd-product-row-bottom" style={{
+                        gridTemplateColumns: product.is_manual ? '120px 1fr' : '120px 160px 1fr 190px'
+                      }}>
                         <div className="cmd-field">
                           <label>Qté</label>
                           <input
@@ -492,18 +498,20 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                             required
                           />
                         </div>
-                        <div className="cmd-field">
-                          <label>Prix unit. (DH)</label>
-                          <input
-                            type="number"
-                            className="cmd-input"
-                            value={product.price}
-                            min="0"
-                            step="0.01"
-                            onChange={(event) => handleProductChange(index, 'price', parseFloat(event.target.value) || 0)}
-                            required
-                          />
-                        </div>
+                        {!product.is_manual && (
+                          <div className="cmd-field">
+                            <label>Prix unit. (DH)</label>
+                            <input
+                              type="number"
+                              className="cmd-input"
+                              value={product.price}
+                              min="0"
+                              step="0.01"
+                              onChange={(event) => handleProductChange(index, 'price', parseFloat(event.target.value) || 0)}
+                              required
+                            />
+                          </div>
+                        )}
                         <div className="cmd-field">
                           <label>Lot</label>
                           <input
@@ -514,26 +522,30 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                             placeholder="Ex: LOT-2025"
                           />
                         </div>
-                        <div className="cmd-field">
-                          <label>Date d'expiration</label>
-                          <input
-                            type="date"
-                            className={!product.is_manual ? "cmd-input cmd-readonly" : "cmd-input"}
-                            value={product.expiration_date}
-                            onChange={(event) => handleProductChange(index, 'expiration_date', event.target.value)}
-                            disabled={!product.is_manual}
-                            min={product.is_manual ? addMonthsStr(formData.date_livraison_prevue || formData.date_commande || getLocalTodayString(), 2) : undefined}
-                            required
-                          />
-                        </div>
+                        {!product.is_manual && (
+                          <div className="cmd-field">
+                            <label>Date d'expiration</label>
+                            <input
+                              type="date"
+                              className={!product.is_manual ? "cmd-input cmd-readonly" : "cmd-input"}
+                              value={product.expiration_date}
+                              onChange={(event) => handleProductChange(index, 'expiration_date', event.target.value)}
+                              disabled={!product.is_manual}
+                              min={product.is_manual ? addMonthsStr(formData.date_livraison_prevue || formData.date_commande || getLocalTodayString(), 2) : undefined}
+                              required
+                            />
+                          </div>
+                        )}
                       </div>
 
-                      {product.code && (
+                      {(product.code || !product.is_manual) && (
                         <div className="cmd-product-code-bar">
-                          <span>Code : {product.code}</span>
-                          <span className="cmd-product-subtotal">
-                            Sous-total : <strong>{(Number(product.quantity) * Number(product.price)).toFixed(2)} DH</strong>
-                          </span>
+                          {product.code ? <span>Code : {product.code}</span> : <span></span>}
+                          {!product.is_manual && (
+                            <span className="cmd-product-subtotal">
+                              Sous-total : <strong>{(Number(product.quantity) * Number(product.price)).toFixed(2)} DH</strong>
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
