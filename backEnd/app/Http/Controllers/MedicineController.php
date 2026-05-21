@@ -55,7 +55,7 @@ class MedicineController extends Controller
             'prix' => 'required|numeric|min:0',
             'exp' => 'required|date',
             'description' => 'nullable|string',
-            'image_url' => 'nullable|url',
+            'image_url' => 'nullable|string',
             'ordonnance' => 'nullable|boolean',
             'seuil_alerte' => 'nullable|integer|min:0',
             'translations' => 'sometimes|array',
@@ -84,7 +84,7 @@ class MedicineController extends Controller
                 'prix' => $payload['prix'],
                 'exp' => $payload['exp'],
                 'description' => $payload['description'] ?? null,
-                'image_url' => $payload['image_url'] ?? null,
+                'image_url' => $this->handleBase64Image($payload['image_url'] ?? null),
                 'ordonnance' => (bool) ($payload['ordonnance'] ?? false),
                 'seuil_alerte' => $payload['seuil_alerte'] ?? 10,
             ]);
@@ -128,7 +128,7 @@ class MedicineController extends Controller
             'prix' => 'sometimes|required|numeric|min:0',
             'exp' => 'sometimes|required|date',
             'description' => 'nullable|string',
-            'image_url' => 'nullable|url',
+            'image_url' => 'nullable|string',
             'ordonnance' => 'nullable|boolean',
             'seuil_alerte' => 'nullable|integer|min:0',
             'translations' => 'sometimes|array',
@@ -159,7 +159,7 @@ class MedicineController extends Controller
                 'prix' => $payload['prix'] ?? $medicine->prix,
                 'exp' => $payload['exp'] ?? $medicine->exp,
                 'description' => array_key_exists('description', $payload) ? $payload['description'] : $medicine->description,
-                'image_url' => array_key_exists('image_url', $payload) ? $payload['image_url'] : $medicine->image_url,
+                'image_url' => array_key_exists('image_url', $payload) ? $this->handleBase64Image($payload['image_url']) : $medicine->image_url,
                 'ordonnance' => array_key_exists('ordonnance', $payload) ? (bool) $payload['ordonnance'] : (bool) $medicine->ordonnance,
                 'seuil_alerte' => array_key_exists('seuil_alerte', $payload) ? (int) $payload['seuil_alerte'] : (int) ($medicine->seuil_alerte ?? 10),
             ];
@@ -296,5 +296,33 @@ class MedicineController extends Controller
             'medicine'    => $this->localizeMedicine($medicine, $locale),
             'out_of_stock' => false,
         ]);
+    }
+
+    private function handleBase64Image(?string $base64): ?string
+    {
+        if (!$base64 || !preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+            return $base64;
+        }
+
+        $data = substr($base64, strpos($base64, ',') + 1);
+        $type = strtolower($type[1]);
+
+        if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png', 'webp', 'svg'])) {
+            return $base64;
+        }
+
+        $data = base64_decode($data);
+        if ($data === false) {
+            return $base64;
+        }
+
+        $filename = time() . '_' . uniqid() . '.' . $type;
+        $directory = public_path('uploads/medicines');
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true);
+        }
+        file_put_contents($directory . '/' . $filename, $data);
+
+        return asset('uploads/medicines/' . $filename);
     }
 }

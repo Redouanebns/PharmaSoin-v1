@@ -114,6 +114,31 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
     setMoleculeDraft("");
   }, [initialData, isOpen]);
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("L'image ne doit pas dépasser 2 Mo.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          image_url: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      image_url: "",
+    }));
+  };
+
   const activeTranslation = useMemo(
     () => formData.translations[activeLocale] || emptyTranslation(),
     [activeLocale, formData.translations],
@@ -469,15 +494,54 @@ const MedicineFormModal = ({ isOpen, onClose, onSave, initialData }) => {
                 </div>
                 <div className="col-md-6">
                   <div className="form-group-custom">
-                    <label>URL de l'image</label>
-                    <input
-                      type="text"
-                      name="image_url"
-                      value={formData.image_url}
-                      onChange={handleBaseChange}
-                      placeholder="https://..."
-                      className="form-input-custom"
-                    />
+                    <label>Image du médicament</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {formData.image_url ? (
+                        <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '12px', border: '1px solid var(--border-light, #e2e8f0)', overflow: 'hidden', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+                          <img 
+                            src={formData.image_url} 
+                            alt="Aperçu" 
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.75rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                            title="Supprimer l'image"
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ width: '100px', height: '100px', borderRadius: '12px', border: '2px dashed var(--border-light, #e2e8f0)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', background: '#f8fafc' }}>
+                          <i className="fas fa-image" style={{ fontSize: '1.4rem', marginBottom: '0.2rem' }}></i>
+                          <small style={{ fontSize: '0.7rem' }}>Aucune image</small>
+                        </div>
+                      )}
+                      
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.8rem', background: '#0f766e', color: 'white', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '800', cursor: 'pointer', transition: 'all 0.2s ease', margin: 0, boxShadow: '0 4px 10px rgba(15,118,110,0.15)' }}>
+                          <i className="fas fa-upload"></i>
+                          Importer
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleFileChange} 
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>ou</span>
+                        <input
+                          type="text"
+                          name="image_url"
+                          value={formData.image_url?.startsWith('data:') ? '' : formData.image_url}
+                          onChange={handleBaseChange}
+                          placeholder="Coller l'URL de l'image (https://...)"
+                          className="form-input-custom"
+                          style={{ flex: 1, height: '36px', fontSize: '0.8rem', padding: '0 0.75rem' }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
