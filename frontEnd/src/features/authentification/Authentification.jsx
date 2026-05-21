@@ -248,7 +248,7 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
             <p>
               {mode === 'login'
                 ? 'Accédez à votre tableau de bord selon votre rôle.'
-                : 'Ajoutez un compte admin, pharmacien ou client depuis le backend d’authentification.'}
+                : 'Créez votre compte en quelques instants.'}
             </p>
           </div>
 
@@ -469,13 +469,7 @@ const Authentification = ({ isDarkMode, onAuthenticated }) => {
             Continuer avec Google
           </button>
 
-          <div className="auth-footer-note">
-            <i className="fas fa-info-circle me-1"></i>
-            <small>
-              L’inscription publique est {publicSettings.enable_registration ? 'activée' : 'désactivée'} et la connexion Google est{' '}
-              {publicSettings.enable_google_auth ? 'activée' : 'désactivée'}.
-            </small>
-          </div>
+
         </div>
       </div>
     </div>
