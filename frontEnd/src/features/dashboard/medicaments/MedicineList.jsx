@@ -17,7 +17,7 @@ const splitMolecules = (value = '') =>
 
 const getExpirationInfo = (exp) => {
   if (!exp) {
-    return { label: 'Non définie', tone: 'neutral', helper: 'Aucune date', isExpired: false, isWarning: false };
+    return { label: 'Non définie', tone: 'neutral', helper: '', isExpired: false, isWarning: false };
   }
 
   const today = new Date();
@@ -35,7 +35,7 @@ const getExpirationInfo = (exp) => {
     return { label: 'Expire bientôt', tone: 'warning', helper: `Dans ${diffDays} jour(s)`, isExpired: false, isWarning: true };
   }
 
-  return { label: 'Valide', tone: 'success', helper: `Jusqu'au ${exp}`, isExpired: false, isWarning: false };
+  return { label: 'Valide', tone: 'success', helper: '', isExpired: false, isWarning: false };
 };
 
 const getMedicineStatus = (medicine) => {
@@ -462,7 +462,10 @@ const MedicineList = ({ medicines: initialMedicines = [], isDarkMode, toggleDark
                     <td>
                       <div className={`expiry-chip expiry-${medicine.expiryInfo.tone}`}>
                         <span>{medicine.expiryInfo.label}</span>
-                        <small>{medicine.exp || '—'} • {medicine.expiryInfo.helper}</small>
+                        <small>
+                          {medicine.exp || 'Aucune date'}
+                          {medicine.expiryInfo.helper ? ` • ${medicine.expiryInfo.helper}` : ''}
+                        </small>
                       </div>
                     </td>
                     <td className="text-center">
