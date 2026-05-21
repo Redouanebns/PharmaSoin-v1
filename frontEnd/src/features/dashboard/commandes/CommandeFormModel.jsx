@@ -11,6 +11,7 @@ const emptyProduct = () => ({
   price: 0,
   lot: '',
   expiration_date: '',
+  is_manual: false,
 });
 
 const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => {
@@ -49,6 +50,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
         price: product.price || 0,
         lot: product.lot || '',
         expiration_date: product.expiration_date || '',
+        is_manual: !product.medicine_id,
       }));
 
       setFormData({
@@ -138,7 +140,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
         };
       } else {
         updated = [
-          ...prev.produits.filter((p) => p.medicine_id !== ''),
+          ...prev.produits.filter((p) => p.medicine_id !== '' || p.is_manual),
           {
             medicine_id: medicine.id,
             name: medicine.nom,
@@ -147,6 +149,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
             price: Number(medicine.prix || 0),
             lot: '',
             expiration_date: '',
+            is_manual: false,
           },
         ];
       }
@@ -158,7 +161,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const validProduits = formData.produits.filter((p) => p.medicine_id !== '');
+    const validProduits = formData.produits.filter((p) => p.medicine_id !== '' || (p.is_manual && p.name.trim() !== ''));
     onSave({ ...formData, produits: validProduits });
   };
 
@@ -297,7 +300,7 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
             {/* Right: Product lines */}
             <div className="cmd-products-panel">
               <div className="cmd-products-header">
-                <h4>Produits à commander ({formData.produits.filter((p) => p.medicine_id).length})</h4>
+                <h4>Produits à commander ({formData.produits.filter((p) => p.medicine_id || (p.is_manual && p.name.trim() !== '')).length})</h4>
                 <button type="button" className="cmd-add-product" onClick={addProduct}>
                   <Plus size={16} /> Ligne vide
                 </button>
@@ -314,17 +317,66 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                       <div className="cmd-product-row-top">
                         <div className="cmd-field flex-1">
                           <label>Médicament</label>
-                          <select
-                            className="cmd-input"
-                            value={product.medicine_id}
-                            onChange={(event) => handleProductChange(index, 'medicine_id', event.target.value)}
-                            required
-                          >
-                            <option value="">Choisir un médicament</option>
-                            {medicines.map((m) => (
-                              <option key={m.id} value={m.id}>{m.nom} — {m.code}</option>
-                            ))}
-                          </select>
+                          {product.is_manual ? (
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <input
+                                type="text"
+                                className="cmd-input"
+                                placeholder="Nom du nouveau médicament *"
+                                value={product.name}
+                                onChange={(event) => handleProductChange(index, 'name', event.target.value)}
+                                required
+                                style={{ flex: 2 }}
+                              />
+                              <input
+                                type="text"
+                                className="cmd-input"
+                                placeholder="Code-barres (facultatif)"
+                                value={product.code}
+                                onChange={(event) => handleProductChange(index, 'code', event.target.value)}
+                                style={{ flex: 1 }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleProductChange(index, 'is_manual', false);
+                                  handleProductChange(index, 'medicine_id', '');
+                                  handleProductChange(index, 'name', '');
+                                  handleProductChange(index, 'code', '');
+                                }}
+                                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.55rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', color: '#475569', fontWeight: '700', transition: 'all 0.2s' }}
+                              >
+                                <i className="fas fa-list"></i> Catalogue
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <select
+                                className="cmd-input"
+                                value={product.medicine_id}
+                                onChange={(event) => handleProductChange(index, 'medicine_id', event.target.value)}
+                                required
+                              >
+                                <option value="">Choisir un médicament</option>
+                                {medicines.map((m) => (
+                                  <option key={m.id} value={m.id}>{m.nom} — {m.code}</option>
+                                ))}
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleProductChange(index, 'is_manual', true);
+                                  handleProductChange(index, 'medicine_id', '');
+                                  handleProductChange(index, 'name', '');
+                                  handleProductChange(index, 'code', '');
+                                }}
+                                style={{ background: '#0f766e', color: 'white', border: 'none', padding: '0.55rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', fontWeight: '700', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(15,118,110,0.15)' }}
+                                title="Saisir un nouveau médicament qui n'existe pas dans le catalogue"
+                              >
+                                <Plus size={14} /> Nouveau
+                              </button>
+                            </div>
+                          )}
                         </div>
                         <button
                           type="button"

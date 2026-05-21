@@ -32,8 +32,8 @@ class CommandeController extends Controller
             'montant' => 'required|numeric|min:0',
             'statut' => 'required|string|max:255',
             'produits' => 'nullable|array',
-            'produits.*.medicine_id' => 'required|exists:medicines,id',
-            'produits.*.name' => 'nullable|string|max:255',
+            'produits.*.medicine_id' => 'nullable',
+            'produits.*.name' => 'required_without:produits.*.medicine_id|string|max:255',
             'produits.*.code' => 'nullable|string|max:255',
             'produits.*.quantity' => 'required|integer|min:1',
             'produits.*.price' => 'nullable|numeric|min:0',
@@ -71,8 +71,8 @@ class CommandeController extends Controller
             'montant' => 'required|numeric|min:0',
             'statut' => 'required|string|max:255',
             'produits' => 'nullable|array',
-            'produits.*.medicine_id' => 'required|exists:medicines,id',
-            'produits.*.name' => 'nullable|string|max:255',
+            'produits.*.medicine_id' => 'nullable',
+            'produits.*.name' => 'required_without:produits.*.medicine_id|string|max:255',
             'produits.*.code' => 'nullable|string|max:255',
             'produits.*.quantity' => 'required|integer|min:1',
             'produits.*.price' => 'nullable|numeric|min:0',
@@ -122,10 +122,11 @@ class CommandeController extends Controller
     {
         return collect($products)
             ->map(function (array $product) {
-                $medicine = Medicine::find($product['medicine_id']);
+                $medicineId = !empty($product['medicine_id']) ? (int) $product['medicine_id'] : null;
+                $medicine = $medicineId ? Medicine::find($medicineId) : null;
 
                 return [
-                    'medicine_id' => (int) $product['medicine_id'],
+                    'medicine_id' => $medicineId,
                     'name' => $product['name'] ?? $medicine?->nom,
                     'code' => $product['code'] ?? $medicine?->code,
                     'quantity' => (int) ($product['quantity'] ?? 1),
@@ -141,8 +142,61 @@ class CommandeController extends Controller
     private function syncCommandeRelations(Commande $commande): void
     {
         if ($commande->statut === 'Livrée' && !$commande->stock_integre) {
+            $updatedProduits = [];
             foreach ($commande->produits ?? [] as $product) {
-                $medicine = Medicine::lockForUpdate()->findOrFail($product['medicine_id']);
+                $medicineId = !empty($product['medicine_id']) ? (int) $product['medicine_id'] : null;
+                $medicine = null;
+
+                if ($medicineId) {
+                    $medicine = Medicine::find($medicineId);
+                }
+
+                // If not found by ID but code is provided, search by code to prevent duplicates
+                if (!$medicine && !empty($product['code'])) {
+                    $medicine = Medicine::where('code', $product['code'])->first();
+                }
+
+                // If still not found, create a new medicine
+                if (!$medicine) {
+                    // Find or create default category
+                    $category = Category::first();
+                    if (!$category) {
+                        $category = Category::create([
+                            'name' => 'Divers',
+                            'description' => 'Catégorie par défaut pour les médicaments créés via commande',
+                        ]);
+                        // Create translations for category
+                        foreach (['fr', 'en', 'ar'] as $lang) {
+                            $category->translations()->create([
+                                'locale' => $lang,
+                                'name' => $category->name,
+                                'description' => $category->description,
+                            ]);
+                        }
+                    }
+
+                    $medicine = Medicine::create([
+                        'nom' => $product['name'] ?? 'Médicament Inconnu',
+                        'dci' => $product['name'] ?? 'Inconnu',
+                        'code' => !empty($product['code']) ? $product['code'] : ('TEMP-' . time() . '-' . rand(100, 999)),
+                        'category_id' => $category->id,
+                        'prix' => round((float) ($product['price'] ?? 0), 2),
+                        'stock' => 0,
+                        'exp' => $product['expiration_date'] ?? now()->addYear()->format('Y-m-d'),
+                        'description' => 'Créé automatiquement via la commande n° ' . $commande->numero_commande,
+                    ]);
+
+                    // Sync translations for the newly created medicine
+                    foreach (['fr', 'en', 'ar'] as $lang) {
+                        $medicine->translations()->create([
+                            'locale' => $lang,
+                            'nom' => $medicine->nom,
+                            'dci' => $medicine->dci,
+                            'description' => $medicine->description,
+                        ]);
+                    }
+                }
+
                 $quantity = (int) ($product['quantity'] ?? 0);
                 $expirationDate = $product['expiration_date'] ?? null;
 
@@ -173,9 +227,18 @@ class CommandeController extends Controller
                         $medicine->update(['exp' => $incomingExpiry->format('Y-m-d')]);
                     }
                 }
+
+                // Update the product record with final ID, name, code
+                $product['medicine_id'] = $medicine->id;
+                $product['name'] = $medicine->nom;
+                $product['code'] = $medicine->code;
+                $updatedProduits[] = $product;
             }
 
-            $commande->update(['stock_integre' => true]);
+            $commande->update([
+                'produits' => $updatedProduits,
+                'stock_integre' => true,
+            ]);
         }
 
         $this->upsertCommandeTransaction($commande->fresh('fournisseur'));
