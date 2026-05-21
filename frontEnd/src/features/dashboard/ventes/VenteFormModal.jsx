@@ -165,6 +165,14 @@ const VenteFormModal = ({ isOpen, onClose, onSave, initialData, medicines = [], 
       updateOrdonnanceRequirement(products);
       return;
     }
+
+    // Si la seule ligne existante est vide, on la remplace directement
+    if (form.produits.length === 1 && form.produits[0].medicine_id === '') {
+      const products = [mapProduitFromMedicine(medicine)];
+      updateOrdonnanceRequirement(products);
+      return;
+    }
+
     addProduit(medicine);
   };
 
@@ -347,7 +355,7 @@ const VenteFormModal = ({ isOpen, onClose, onSave, initialData, medicines = [], 
                       <label>Sous-total</label>
                       <div className="vsoustotal">{(Number(product.qte) * Number(product.prix_unitaire)).toFixed(2)} DH</div>
                     </div>
-                    <button type="button" className="vremove-btn" onClick={() => removeProduit(index)} disabled={form.produits.length === 1} title="Supprimer">
+                    <button type="button" className="vremove-btn" onClick={() => removeProduit(index)} title="Supprimer">
                       <i className="fas fa-trash-alt"></i>
                     </button>
                   </div>
