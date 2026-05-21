@@ -35,6 +35,8 @@ class CommandeController extends Controller
             'produits.*.medicine_id' => 'nullable',
             'produits.*.name' => 'required_without:produits.*.medicine_id|string|max:255',
             'produits.*.code' => 'nullable|string|max:255',
+            'produits.*.dose' => 'nullable|string|max:255',
+            'produits.*.category_id' => 'nullable|exists:categories,id',
             'produits.*.quantity' => 'required|integer|min:1',
             'produits.*.price' => 'nullable|numeric|min:0',
             'produits.*.expiration_date' => 'nullable|date',
@@ -74,6 +76,8 @@ class CommandeController extends Controller
             'produits.*.medicine_id' => 'nullable',
             'produits.*.name' => 'required_without:produits.*.medicine_id|string|max:255',
             'produits.*.code' => 'nullable|string|max:255',
+            'produits.*.dose' => 'nullable|string|max:255',
+            'produits.*.category_id' => 'nullable|exists:categories,id',
             'produits.*.quantity' => 'required|integer|min:1',
             'produits.*.price' => 'nullable|numeric|min:0',
             'produits.*.expiration_date' => 'nullable|date',
@@ -129,6 +133,8 @@ class CommandeController extends Controller
                     'medicine_id' => $medicineId,
                     'name' => $product['name'] ?? $medicine?->nom,
                     'code' => $product['code'] ?? $medicine?->code,
+                    'dose' => $product['dose'] ?? $medicine?->dose,
+                    'category_id' => !empty($product['category_id']) ? (int) $product['category_id'] : $medicine?->category_id,
                     'quantity' => (int) ($product['quantity'] ?? 1),
                     'price' => round((float) ($product['price'] ?? $medicine?->prix ?? 0), 2),
                     'expiration_date' => $product['expiration_date'] ?? null,
@@ -158,28 +164,33 @@ class CommandeController extends Controller
 
                 // If still not found, create a new medicine
                 if (!$medicine) {
-                    // Find or create default category
-                    $category = Category::first();
-                    if (!$category) {
-                        $category = Category::create([
-                            'name' => 'Divers',
-                            'description' => 'Catégorie par défaut pour les médicaments créés via commande',
-                        ]);
-                        // Create translations for category
-                        foreach (['fr', 'en', 'ar'] as $lang) {
-                            $category->translations()->create([
-                                'locale' => $lang,
-                                'name' => $category->name,
-                                'description' => $category->description,
+                    // Find or create category
+                    $categoryId = !empty($product['category_id']) ? (int) $product['category_id'] : null;
+                    if (!$categoryId || !Category::where('id', $categoryId)->exists()) {
+                        $category = Category::first();
+                        if (!$category) {
+                            $category = Category::create([
+                                'name' => 'Divers',
+                                'description' => 'Catégorie par défaut pour les médicaments créés via commande',
                             ]);
+                            // Create translations for category
+                            foreach (['fr', 'en', 'ar'] as $lang) {
+                                $category->translations()->create([
+                                    'locale' => $lang,
+                                    'name' => $category->name,
+                                    'description' => $category->description,
+                                ]);
+                            }
                         }
+                        $categoryId = $category->id;
                     }
 
                     $medicine = Medicine::create([
                         'nom' => $product['name'] ?? 'Médicament Inconnu',
                         'dci' => $product['name'] ?? 'Inconnu',
                         'code' => !empty($product['code']) ? $product['code'] : ('TEMP-' . time() . '-' . rand(100, 999)),
-                        'category_id' => $category->id,
+                        'category_id' => $categoryId,
+                        'dose' => $product['dose'] ?? null,
                         'prix' => round((float) ($product['price'] ?? 0), 2),
                         'stock' => 0,
                         'exp' => $product['expiration_date'] ?? now()->addYear()->format('Y-m-d'),
@@ -192,6 +203,7 @@ class CommandeController extends Controller
                             'locale' => $lang,
                             'nom' => $medicine->nom,
                             'dci' => $medicine->dci,
+                            'dose' => $medicine->dose,
                             'description' => $medicine->description,
                         ]);
                     }
@@ -228,10 +240,12 @@ class CommandeController extends Controller
                     }
                 }
 
-                // Update the product record with final ID, name, code
+                // Update the product record with final ID, name, code, dose, category
                 $product['medicine_id'] = $medicine->id;
                 $product['name'] = $medicine->nom;
                 $product['code'] = $medicine->code;
+                $product['dose'] = $medicine->dose;
+                $product['category_id'] = $medicine->category_id;
                 $updatedProduits[] = $product;
             }
 

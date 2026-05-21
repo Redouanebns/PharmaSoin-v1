@@ -7,6 +7,8 @@ const emptyProduct = () => ({
   medicine_id: '',
   name: '',
   code: '',
+  dose: '',
+  category_id: '',
   quantity: 1,
   price: 0,
   lot: '',
@@ -16,6 +18,7 @@ const emptyProduct = () => ({
 
 const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => {
   const [medicines, setMedicines] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [medicineSearch, setMedicineSearch] = useState('');
   const [formData, setFormData] = useState({
     numero_commande: '',
@@ -29,10 +32,14 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
 
   const fetchMedicines = useCallback(async () => {
     try {
-      const response = await api.get('/medicaments');
-      setMedicines(Array.isArray(response.data) ? response.data : []);
+      const [medRes, catRes] = await Promise.all([
+        api.get('/medicaments'),
+        api.get('/categories')
+      ]);
+      setMedicines(Array.isArray(medRes.data) ? medRes.data : []);
+      setCategories(Array.isArray(catRes.data) ? catRes.data : []);
     } catch (error) {
-      console.error('Erreur chargement médicaments:', error);
+      console.error('Erreur chargement données:', error);
     }
   }, []);
 
@@ -46,6 +53,8 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
         medicine_id: product.medicine_id || '',
         name: product.name || '',
         code: product.code || '',
+        dose: product.dose || '',
+        category_id: product.category_id || '',
         quantity: product.quantity || 1,
         price: product.price || 0,
         lot: product.lot || '',
@@ -102,6 +111,8 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
             medicine_id: medicine.id,
             name: medicine.nom,
             code: medicine.code,
+            dose: medicine.dose || '',
+            category_id: medicine.category_id || '',
             price: Number(medicine.prix || 0),
           };
         }
@@ -145,6 +156,8 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
             medicine_id: medicine.id,
             name: medicine.nom,
             code: medicine.code,
+            dose: medicine.dose || '',
+            category_id: medicine.category_id || '',
             quantity: 1,
             price: Number(medicine.prix || 0),
             lot: '',
@@ -316,26 +329,54 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                     <div key={index} className="cmd-product-card">
                       <div className="cmd-product-row-top">
                         <div className="cmd-field flex-1">
-                          <label>Médicament</label>
+                          {!product.is_manual && <label>Médicament</label>}
                           {product.is_manual ? (
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                              <input
-                                type="text"
-                                className="cmd-input"
-                                placeholder="Nom du nouveau médicament *"
-                                value={product.name}
-                                onChange={(event) => handleProductChange(index, 'name', event.target.value)}
-                                required
-                                style={{ flex: 2 }}
-                              />
-                              <input
-                                type="text"
-                                className="cmd-input"
-                                placeholder="Code-barres (facultatif)"
-                                value={product.code}
-                                onChange={(event) => handleProductChange(index, 'code', event.target.value)}
-                                style={{ flex: 1 }}
-                              />
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.5fr 1.2fr auto', gap: '0.5rem', alignItems: 'flex-end', width: '100%' }}>
+                              <div className="cmd-field" style={{ marginBottom: 0 }}>
+                                <label style={{ fontSize: '0.75rem', color: '#475569', fontWeight: '700' }}>Nom du médicament *</label>
+                                <input
+                                  type="text"
+                                  className="cmd-input"
+                                  placeholder="Nom..."
+                                  value={product.name}
+                                  onChange={(event) => handleProductChange(index, 'name', event.target.value)}
+                                  required
+                                />
+                              </div>
+                              <div className="cmd-field" style={{ marginBottom: 0 }}>
+                                <label style={{ fontSize: '0.75rem', color: '#475569', fontWeight: '700' }}>Code-barres</label>
+                                <input
+                                  type="text"
+                                  className="cmd-input"
+                                  placeholder="Code..."
+                                  value={product.code}
+                                  onChange={(event) => handleProductChange(index, 'code', event.target.value)}
+                                />
+                              </div>
+                              <div className="cmd-field" style={{ marginBottom: 0 }}>
+                                <label style={{ fontSize: '0.75rem', color: '#475569', fontWeight: '700' }}>Catégorie *</label>
+                                <select
+                                  className="cmd-input"
+                                  value={product.category_id}
+                                  onChange={(event) => handleProductChange(index, 'category_id', event.target.value)}
+                                  required
+                                >
+                                  <option value="">Sélectionner...</option>
+                                  {categories.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="cmd-field" style={{ marginBottom: 0 }}>
+                                <label style={{ fontSize: '0.75rem', color: '#475569', fontWeight: '700' }}>Dosage / Forme</label>
+                                <input
+                                  type="text"
+                                  className="cmd-input"
+                                  placeholder="Ex: 500mg"
+                                  value={product.dose}
+                                  onChange={(event) => handleProductChange(index, 'dose', event.target.value)}
+                                />
+                              </div>
                               <button
                                 type="button"
                                 onClick={() => {
@@ -343,8 +384,10 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                                   handleProductChange(index, 'medicine_id', '');
                                   handleProductChange(index, 'name', '');
                                   handleProductChange(index, 'code', '');
+                                  handleProductChange(index, 'dose', '');
+                                  handleProductChange(index, 'category_id', '');
                                 }}
-                                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.55rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', color: '#475569', fontWeight: '700', transition: 'all 0.2s' }}
+                                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.55rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', color: '#475569', fontWeight: '700', transition: 'all 0.2s', height: '38px' }}
                               >
                                 <i className="fas fa-list"></i> Catalogue
                               </button>
@@ -369,6 +412,8 @@ const CommandeFormModel = ({ isOpen, onClose, onSave, commande, suppliers }) => 
                                   handleProductChange(index, 'medicine_id', '');
                                   handleProductChange(index, 'name', '');
                                   handleProductChange(index, 'code', '');
+                                  handleProductChange(index, 'dose', '');
+                                  handleProductChange(index, 'category_id', '');
                                 }}
                                 style={{ background: '#0f766e', color: 'white', border: 'none', padding: '0.55rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap', fontWeight: '700', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(15,118,110,0.15)' }}
                                 title="Saisir un nouveau médicament qui n'existe pas dans le catalogue"
